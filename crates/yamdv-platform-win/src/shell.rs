@@ -112,36 +112,120 @@ fn env(k: &str) -> String {
     std::env::var(k).unwrap_or_default()
 }
 
-/// Detects the external editor (R-EXT-02, FUT-10 scope): VS Code, Notepad++, Notepad.
+/// Reads an `App Paths` registry entry (HKCU, then HKLM; read-only, S-REG-04) (R-EXT-02).
+fn app_path(exe: &str) -> Option<String> {
+    use windows::Win32::System::Registry::{
+        HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE, RRF_RT_REG_SZ, RegGetValueW,
+    };
+    let key = HSTRING::from(format!(
+        "Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\{exe}"
+    ));
+    for root in [HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE] {
+        let mut buf = [0u16; 520];
+        let mut n = (buf.len() * 2) as u32;
+        // SAFETY: valid key name, default value, writable buffer of `n` bytes; read-only.
+        let r = unsafe {
+            RegGetValueW(
+                root,
+                &key,
+                PCWSTR::null(),
+                RRF_RT_REG_SZ,
+                None,
+                Some(buf.as_mut_ptr().cast()),
+                Some(&mut n),
+            )
+        };
+        if r.is_ok() {
+            let len = (n as usize / 2).saturating_sub(1);
+            let v = String::from_utf16_lossy(buf.get(..len).unwrap_or(&[]));
+            let v = v.trim().trim_matches('"').to_string();
+            if !v.is_empty() {
+                return Some(v);
+            }
+        }
+    }
+    None
+}
+
+/// Detects the external editor (R-EXT-02, first found): VS Code, VSCodium, Cursor, Sublime Text,
+/// Notepad++, EmEditor, Typora, Notepad. Known install folders, then `App Paths`; real `.exe` only.
 fn detect_editor() -> Option<(String, cmdline::Editor)> {
-    let cands = [
+    use cmdline::Editor as E;
+    let (la, pf, px) = (
+        env("LOCALAPPDATA"),
+        env("ProgramFiles"),
+        env("ProgramFiles(x86)"),
+    );
+    let sibling = |p: Option<String>, name: &str| {
+        p.and_then(|p| Some(format!("{}\\{name}", p.rsplit_once('\\')?.0)))
+    };
+    let editors: [(E, Vec<String>, Option<String>); 8] = [
         (
-            format!(
-                "{}\\Programs\\Microsoft VS Code\\Code.exe",
-                env("LOCALAPPDATA")
-            ),
-            cmdline::Editor::VsCode,
+            E::VsCode,
+            vec![
+                format!("{la}\\Programs\\Microsoft VS Code\\Code.exe"),
+                format!("{pf}\\Microsoft VS Code\\Code.exe"),
+            ],
+            app_path("Code.exe"),
         ),
         (
-            format!("{}\\Microsoft VS Code\\Code.exe", env("ProgramFiles")),
-            cmdline::Editor::VsCode,
+            E::VsCode,
+            vec![
+                format!("{la}\\Programs\\VSCodium\\VSCodium.exe"),
+                format!("{pf}\\VSCodium\\VSCodium.exe"),
+            ],
+            app_path("VSCodium.exe"),
         ),
         (
-            format!("{}\\Notepad++\\notepad++.exe", env("ProgramFiles")),
-            cmdline::Editor::NotepadPp,
+            E::VsCode,
+            vec![format!("{la}\\Programs\\cursor\\Cursor.exe")],
+            app_path("Cursor.exe"),
         ),
         (
-            format!("{}\\Notepad++\\notepad++.exe", env("ProgramFiles(x86)")),
-            cmdline::Editor::NotepadPp,
+            E::Sublime,
+            vec![
+                format!("{pf}\\Sublime Text\\subl.exe"),
+                format!("{pf}\\Sublime Text 3\\subl.exe"),
+            ],
+            sibling(app_path("sublime_text.exe"), "subl.exe"),
         ),
         (
-            format!("{}\\System32\\notepad.exe", env("SystemRoot")),
-            cmdline::Editor::Notepad,
+            E::NotepadPp,
+            vec![
+                format!("{pf}\\Notepad++\\notepad++.exe"),
+                format!("{px}\\Notepad++\\notepad++.exe"),
+            ],
+            app_path("notepad++.exe"),
+        ),
+        (
+            E::EmEditor,
+            vec![format!("{pf}\\EmEditor\\EmEditor.exe")],
+            app_path("EmEditor.exe"),
+        ),
+        (
+            E::Typora,
+            vec![
+                format!("{pf}\\Typora\\Typora.exe"),
+                format!("{la}\\Programs\\Typora\\Typora.exe"),
+            ],
+            app_path("Typora.exe"),
+        ),
+        (
+            E::Notepad,
+            vec![format!("{}\\System32\\notepad.exe", env("SystemRoot"))],
+            None,
         ),
     ];
-    cands
-        .into_iter()
-        .find(|(p, _)| !p.starts_with('\\') && std::path::Path::new(p).is_file())
+    editors.into_iter().find_map(|(e, dirs, reg)| {
+        dirs.into_iter()
+            .chain(reg)
+            .find(|p| {
+                !p.starts_with('\\')
+                    && !cmdline::forbidden_target(p)
+                    && std::path::Path::new(p).is_file()
+            })
+            .map(|p| (p, e))
+    })
 }
 
 /// Starts `exe` with `args` via `CreateProcessW` only (S-EXEC-03). `false` when refused/failed.

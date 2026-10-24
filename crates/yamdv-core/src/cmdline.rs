@@ -93,11 +93,17 @@ pub fn split_args(s: &str) -> Vec<String> {
     out
 }
 
-/// Known editors (R-EXT-02, FUT-10 scope).
+/// Known editors (R-EXT-02).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Editor {
-    /// `Code.exe --goto "<file>:<line>:<col>"`.
+    /// `Code.exe --goto "<file>:<line>:<col>"` (also VSCodium and Cursor).
     VsCode,
+    /// `subl.exe "<file>:<line>:<col>"`.
+    Sublime,
+    /// `EmEditor.exe /l <line> /cl <col> "<file>"`.
+    EmEditor,
+    /// `Typora.exe "<file>"` (no line).
+    Typora,
     /// `notepad++.exe -n<line> -c<col> "<file>"`.
     NotepadPp,
     /// `notepad.exe "<file>"`.
@@ -108,8 +114,16 @@ pub enum Editor {
 pub fn editor_args(e: Editor, file: &str, line: u32, col: u32) -> Vec<String> {
     match e {
         Editor::VsCode => vec!["--goto".into(), format!("{file}:{line}:{col}")],
+        Editor::Sublime => vec![format!("{file}:{line}:{col}")],
+        Editor::EmEditor => vec![
+            "/l".into(),
+            line.to_string(),
+            "/cl".into(),
+            col.to_string(),
+            file.to_string(),
+        ],
         Editor::NotepadPp => vec![format!("-n{line}"), format!("-c{col}"), file.to_string()],
-        Editor::Notepad => vec![file.to_string()],
+        Editor::Notepad | Editor::Typora => vec![file.to_string()],
     }
 }
 
@@ -173,6 +187,11 @@ mod tests {
         assert_eq!(
             editor_args(Editor::NotepadPp, "f", 3, 2),
             vec!["-n3", "-c2", "f"]
+        );
+        assert_eq!(editor_args(Editor::Sublime, "f", 3, 2), vec!["f:3:2"]);
+        assert_eq!(
+            editor_args(Editor::EmEditor, "f", 3, 2),
+            vec!["/l", "3", "/cl", "2", "f"]
         );
         assert!(forbidden_target("C:\\Windows\\System32\\cmd.exe"));
         assert!(forbidden_target("C:\\x.bat"));

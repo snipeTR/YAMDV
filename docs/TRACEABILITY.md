@@ -42,7 +42,7 @@ Status values: `planned`, `partial (NNN)`, `implemented (NNN)`, `measured (NNN)`
 | R-EXP-06 | 011 | deferred (FUT-23) |
 | R-EXP-07 | V2-B | implemented (V2-B; BUG-11 #78: worker job, progress card, Cancel, taskbar) |
 | R-EXT-01 | 005 | implemented (005 V1-A) |
-| R-EXT-02 | 005 | deferred (FUT-10) |
+| R-EXT-02 | 005 | implemented (FUT-10, #16): VS Code, VSCodium, Cursor, Sublime Text, Notepad++, EmEditor, Typora, Notepad; install folders then App Paths |
 | R-EXT-03 | 005 | partial (005): template tokenizer + CreateProcessW; no settings UI |
 | R-EXT-04 | 005 | planned |
 | R-IMG-01 | 003 | implemented (017): WIC decode + SVG (yamdv-svg, ADR-0021), animated GIF, ICO; WebP placeholder (ADR-0022) |

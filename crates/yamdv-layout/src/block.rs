@@ -739,6 +739,7 @@ pub(crate) fn shape_text(
         line_pitch: pitch,
         rtl: is_rtl(text),
         tab_spaces: None,
+        text_align: 0,
         objects: Vec::new(),
     })
 }
@@ -839,9 +840,13 @@ pub(crate) fn leaf_aligned(
         line_pitch: pitch,
         rtl,
         tab_spaces: None,
+        text_align: align,
         objects,
     });
+    // BUG-06 (#66): a shaper that aligns every line (DirectWrite) already places them inside `w`;
+    // otherwise the column alignment moves the whole box.
     let x = match align {
+        _ if shaped.aligns_lines() => x,
         2 => x + ((w - shaped.width()) / 2.0).max(0.0),
         3 => x + (w - shaped.width()).max(0.0),
         _ => x,
@@ -997,6 +1002,7 @@ pub(crate) fn card(
         line_pitch: m.code_pitch(),
         rtl: false,
         tab_spaces: Some(4),
+        text_align: 0,
         objects: Vec::new(),
     });
     let text_h = shaped.height().max(m.code_pitch());

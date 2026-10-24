@@ -66,6 +66,7 @@ pub(crate) fn layout(ctx: &mut Ctx<'_>, r: &Reveal, start: u32, w: f32) -> Block
         line_pitch: pitch,
         rtl: is_rtl(&pt.text),
         tab_spaces: Some(4),
+        text_align: 0,
         objects: Vec::new(),
     });
     let mut height = shaped.height().max(pitch);

@@ -113,6 +113,7 @@ pub(crate) fn table(
                 line_pitch: m.pitch(),
                 rtl: is_rtl(&pt.text),
                 tab_spaces: None,
+                text_align: 0,
                 objects: Vec::new(),
             });
             let token = pt
@@ -128,6 +129,7 @@ pub(crate) fn table(
                 line_pitch: m.pitch(),
                 rtl: false,
                 tab_spaces: None,
+                text_align: 0,
                 objects: Vec::new(),
             });
             let e = &mut cols[c];

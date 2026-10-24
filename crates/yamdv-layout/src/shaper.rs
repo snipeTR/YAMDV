@@ -84,12 +84,18 @@ pub struct ParaSpec<'a> {
     pub rtl: bool,
     /// Tab stops every N space advances (code: 4, R-MD-17); `None` = shaper default.
     pub tab_spaces: Option<u8>,
+    /// Line alignment inside `width` (table columns): 0/1 start, 2 center, 3 end (BUG-06).
+    pub text_align: u8,
     /// Inline objects (non-overlapping, sorted).
     pub objects: Vec<InlineObject>,
 }
 
 /// One shaped paragraph.
 pub trait Shaped: std::fmt::Debug {
+    /// Every line is already aligned inside the wrap width (`ParaSpec::text_align`, BUG-06).
+    fn aligns_lines(&self) -> bool {
+        false
+    }
     /// Laid-out width (widest line).
     fn width(&self) -> f32;
     /// Height (lines × pitch).
@@ -343,6 +349,7 @@ mod tests {
             line_pitch: 20.0,
             rtl: false,
             tab_spaces: None,
+            text_align: 0,
             objects: Vec::new(),
         };
         let s = MockShaper.shape(&spec);

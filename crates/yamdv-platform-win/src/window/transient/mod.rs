@@ -128,6 +128,7 @@ fn shape(
         line_pitch: (size * 1.4).round(),
         rtl: false,
         tab_spaces: None,
+        text_align: 0,
         objects: Vec::new(),
     })
 }

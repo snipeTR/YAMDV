@@ -159,6 +159,7 @@ pub(crate) fn code_card(
             line_pitch: pitch,
             rtl: false,
             tab_spaces: None,
+            text_align: 0,
             objects: Vec::new(),
         });
         s.width() / 10.0
@@ -246,6 +247,7 @@ pub(crate) fn code_card(
             line_pitch: pitch,
             rtl: false,
             tab_spaces: Some(4),
+            text_align: 0,
             objects: Vec::new(),
         });
         let base_u16 = all[a].u16s.start;
@@ -324,6 +326,7 @@ pub(crate) fn code_card(
             line_pitch: pitch,
             rtl: false,
             tab_spaces: None,
+            text_align: 0,
             objects: Vec::new(),
         });
         out.para(x + CODE_PAD_X / 2.0 + 8.0, top, shaped, None, None);
@@ -382,6 +385,7 @@ pub(crate) fn code_card(
             line_pitch: 11.0 * 1.4,
             rtl: false,
             tab_spaces: None,
+            text_align: 0,
             objects: Vec::new(),
         });
         s.width()

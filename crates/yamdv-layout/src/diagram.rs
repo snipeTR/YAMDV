@@ -77,6 +77,7 @@ fn shape(shaper: &mut dyn TextShaper, t: &TextSpec, color: u32) -> Box<dyn Shape
         line_pitch: t.size * 1.4,
         rtl: false,
         tab_spaces: None,
+        text_align: 0,
         objects: Vec::new(),
     })
 }

@@ -480,7 +480,8 @@ enum Action {
     Forward(Vec<String>, u64),
     /// Validated dialog-host answer (S-IPC-05).
     HostResult(yamdv_core::ipc::Kind, yamdv_core::ipc::Outcome),
-    NewWindow(String),
+    /// A new window for a document; the optional `#fragment` is scrolled to after load (BUG-01).
+    NewWindow(String, Option<String>),
     Close,
     /// "Save … as…" dialog (dialog host, V1-B).
     SaveAsDialog,
@@ -899,7 +900,7 @@ impl Win {
                 }
                 match ylink::local_kind(&full) {
                     ylink::LocalKind::Markdown if new_window => {
-                        self.actions.push(Action::NewWindow(full));
+                        self.actions.push(Action::NewWindow(full, fragment));
                     }
                     ylink::LocalKind::Markdown => {
                         self.focus = None;
@@ -1519,6 +1520,7 @@ impl Win {
             line_pitch: (size * 1.4).round(),
             rtl: false,
             tab_spaces: None,
+            text_align: 0,
             objects: Vec::new(),
         })
     }
@@ -2232,7 +2234,7 @@ impl Win {
         let mut it = files.into_iter();
         if let Some(first) = it.next() {
             self.open(sh, &first, None, false);
-            actions.extend(it.map(Action::NewWindow));
+            actions.extend(it.map(|f| Action::NewWindow(f, None)));
         } else if let Some(f) = folder {
             // FUT-33: a dropped folder opens the Files tab rooted at it.
             self.files_open_folder(sh, &f);
@@ -3509,8 +3511,15 @@ fn run_actions_inner(hwnd: HWND, actions: Vec<Action>) {
                     yamdv_core::ipc::Outcome::Cancel => {}
                 }
             }
-            Action::NewWindow(p) => {
-                create_window(&sh, Some(&p));
+            Action::NewWindow(p, frag) => {
+                let nw = create_window(&sh, Some(&p));
+                // BUG-01 (#61): Ctrl+click on `other.md#part` opens the new window at the anchor.
+                if let (Some(nw), Some(f)) = (nw, frag) {
+                    app::with_win(nw, |w, sh| {
+                        w.prepare_now(sh);
+                        w.jump_anchor(sh, &f);
+                    });
+                }
             }
             Action::Export(k) => start_export(hwnd, k),
             Action::Install => {

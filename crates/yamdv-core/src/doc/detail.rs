@@ -1211,6 +1211,34 @@ impl Detail {
                 });
                 if math && only {
                     b.d.nodes[n].kind = NodeKind::Placeholder(Placeholder::Math);
+                } else if !math && !rr.is_empty() {
+                    // BUG-02 (#62): a one-line `$$…$$` the math extension rejects (e.g. unbalanced
+                    // braces in `$$\frac{a}{$$`) is still display math, shown in the error style.
+                    let nr = b.d.nodes[n].range.clone();
+                    let raw = source.get(nr.start as usize..nr.end as usize).unwrap_or("");
+                    let t = raw.trim();
+                    if t.len() > 4 && !t.contains('\n') && t.starts_with("$$") && t.ends_with("$$")
+                    {
+                        let lead = (raw.len() - raw.trim_start().len()) as u32;
+                        let start = nr.start + lead;
+                        let end = start + t.len() as u32;
+                        for (k, r) in b.d.runs[rr.start as usize..rr.end as usize]
+                            .iter_mut()
+                            .enumerate()
+                        {
+                            r.kind = RunKind::Text;
+                            r.owned = None;
+                            r.link = NO_LINK;
+                            if k == 0 {
+                                r.range = start..end;
+                                r.style = style::MATH;
+                            } else {
+                                r.range = end..end;
+                                r.style = 0;
+                            }
+                        }
+                        b.d.nodes[n].kind = NodeKind::Placeholder(Placeholder::Math);
+                    }
                 }
             }
         }
@@ -1500,6 +1528,21 @@ mod tests {
             ds[3].nodes[0].kind,
             NodeKind::BlockQuote(Some(Alert::Warning))
         );
+    }
+
+    #[test]
+    fn bug_02_single_line_display_math_error() {
+        let (_, ds) = tree("$$\\frac{a}{$$\n");
+        assert_eq!(
+            ds[0].nodes[0].kind,
+            NodeKind::Placeholder(Placeholder::Math)
+        );
+        let r = &ds[0].runs[ds[0].nodes[0].runs.start as usize];
+        assert_eq!(r.style, style::MATH);
+        assert_eq!(r.text("$$\\frac{a}{$$\n"), "$$\\frac{a}{$$");
+        // Prose that merely contains `$$` stays a paragraph.
+        let (_, ds) = tree("costs $$5 and $$\n");
+        assert!(matches!(ds[0].nodes[0].kind, NodeKind::Paragraph { .. }));
     }
 
     #[test]

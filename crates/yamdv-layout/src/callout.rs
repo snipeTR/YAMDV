@@ -297,6 +297,7 @@ pub(crate) fn callout(
         line_pitch: 14.0 * 1.4,
         rtl: is_rtl(&title),
         tab_spaces: None,
+        text_align: 0,
         objects: Vec::new(),
     });
     let ty = y + 12.0;

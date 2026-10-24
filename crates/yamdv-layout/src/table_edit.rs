@@ -62,6 +62,7 @@ pub(crate) fn layout(ctx: &mut Ctx<'_>, t: &TableReveal, start: u32, w: f32) -> 
                 line_pitch: m.pitch(),
                 rtl: is_rtl(&p.text.text),
                 tab_spaces: None,
+                text_align: 0,
                 objects: Vec::new(),
             });
             let tok = p
@@ -80,6 +81,7 @@ pub(crate) fn layout(ctx: &mut Ctx<'_>, t: &TableReveal, start: u32, w: f32) -> 
                     line_pitch: m.pitch(),
                     rtl: false,
                     tab_spaces: None,
+                    text_align: 0,
                     objects: Vec::new(),
                 })
                 .width();
@@ -113,6 +115,7 @@ pub(crate) fn layout(ctx: &mut Ctx<'_>, t: &TableReveal, start: u32, w: f32) -> 
                     line_pitch: m.pitch(),
                     rtl: is_rtl(&p.text.text),
                     tab_spaces: None,
+                    text_align: 0,
                     objects: Vec::new(),
                 });
                 let sw = shaped.width();

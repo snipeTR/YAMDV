@@ -275,6 +275,7 @@ pub(crate) fn verbatim_spans(
         line_pitch: ctx.m.pitch(),
         rtl: is_rtl(&pt.text),
         tab_spaces: Some(4),
+        text_align: 0,
         objects: Vec::new(),
     });
     let height = shaped.height().max(ctx.m.pitch()) + 2.0 * pad;

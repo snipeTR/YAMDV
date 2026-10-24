@@ -21,7 +21,8 @@ use windows::Win32::Graphics::DirectWrite::{
     DWRITE_FONT_METRICS, DWRITE_FONT_STRETCH_NORMAL, DWRITE_FONT_STYLE_ITALIC,
     DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_WEIGHT, DWRITE_FONT_WEIGHT_NORMAL, DWRITE_GLYPH_METRICS,
     DWRITE_HIT_TEST_METRICS, DWRITE_INLINE_OBJECT_METRICS, DWRITE_LINE_SPACING_METHOD_UNIFORM,
-    DWRITE_OVERHANG_METRICS, DWRITE_READING_DIRECTION_RIGHT_TO_LEFT, DWRITE_TEXT_METRICS,
+    DWRITE_OVERHANG_METRICS, DWRITE_READING_DIRECTION_RIGHT_TO_LEFT, DWRITE_TEXT_ALIGNMENT_CENTER,
+    DWRITE_TEXT_ALIGNMENT_LEADING, DWRITE_TEXT_ALIGNMENT_TRAILING, DWRITE_TEXT_METRICS,
     DWRITE_TEXT_RANGE, DWRITE_WORD_WRAPPING_EMERGENCY_BREAK, DWRITE_WORD_WRAPPING_NO_WRAP,
     DWriteCreateFactory, IDWriteFactory, IDWriteFont1, IDWriteFontCollection, IDWriteFontFace,
     IDWriteInlineObject, IDWriteInlineObject_Impl, IDWriteTextFormat, IDWriteTextLayout,
@@ -432,6 +433,7 @@ impl DWrite {
             line_pitch: size.ceil(),
             rtl: false,
             tab_spaces: None,
+            text_align: 0,
             objects: Vec::new(),
         });
         let l = sh.layout.as_ref()?;
@@ -537,12 +539,14 @@ impl DWrite {
             line_pitch: (size * 1.4).round(),
             rtl: false,
             tab_spaces: None,
+            text_align: 0,
             objects: Vec::new(),
         });
         (sh.width, sh.height)
     }
 
     fn shape_impl(&self, spec: &ParaSpec<'_>) -> DwShaped {
+        let aligned = spec.width.is_some() && matches!(spec.text_align, 2 | 3);
         let text: Vec<u16> = spec.text.encode_utf16().collect();
         let len16 = u32::try_from(text.len()).unwrap_or(u32::MAX);
         let mut colors: Vec<(Range<u32>, Style)> = Vec::new();
@@ -569,6 +573,14 @@ impl DWrite {
                     // R-REN-19: RTL paragraph; with RTL reading direction the leading edge is the
                     // right edge.
                     l.SetReadingDirection(DWRITE_READING_DIRECTION_RIGHT_TO_LEFT)?;
+                }
+                if aligned {
+                    // BUG-06 (#66): every wrapped line follows the table column alignment.
+                    l.SetTextAlignment(match (spec.text_align, spec.rtl) {
+                        (2, _) => DWRITE_TEXT_ALIGNMENT_CENTER,
+                        (_, true) => DWRITE_TEXT_ALIGNMENT_LEADING,
+                        _ => DWRITE_TEXT_ALIGNMENT_TRAILING,
+                    })?;
                 }
                 if let Some(n) = spec.tab_spaces {
                     l.SetIncrementalTabStop(f32::from(n) * self.space_advance(&spec.base))?;
@@ -663,6 +675,7 @@ impl DWrite {
                 base: spec.base,
                 runs: std::mem::take(&mut colors),
                 pitch: spec.line_pitch,
+                aligned,
             })
         })();
         r.unwrap_or(DwShaped {
@@ -673,6 +686,7 @@ impl DWrite {
             base: spec.base,
             runs: Vec::new(),
             pitch: spec.line_pitch,
+            aligned: false,
         })
     }
 }
@@ -690,6 +704,8 @@ pub struct DwShaped {
     /// Styled ranges (UTF-16) — colors and decorations for the renderer.
     pub runs: Vec<(Range<u32>, Style)>,
     pitch: f32,
+    /// Lines are aligned inside the wrap width by DirectWrite (`ParaSpec::text_align`).
+    aligned: bool,
 }
 
 impl DwShaped {
@@ -706,6 +722,9 @@ impl DwShaped {
 impl Shaped for DwShaped {
     fn width(&self) -> f32 {
         self.width
+    }
+    fn aligns_lines(&self) -> bool {
+        self.aligned
     }
     fn height(&self) -> f32 {
         self.height

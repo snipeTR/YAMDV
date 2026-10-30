@@ -1,0 +1,12 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+//! Custom-drawn UI components (pure state + geometry). Phase 002: the in-window confirm dialog
+//! (UI_SPEC §B.10.6, focus ring per §B.16). Rendering is done by the platform layer from the
+//! geometry computed here.
+#![forbid(unsafe_code)]
+
+pub mod a11y;
+pub mod dialog;
+pub mod mindmap;
+pub mod settings_panel;
+pub mod toolbar;
+pub mod transient;

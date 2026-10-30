@@ -1,0 +1,161 @@
+# YAMDV — Commands for the top toolbar (icon list)
+
+**Source:** UI_SPEC §B.7.2 (the right-click / ⋯ menu), the commands added in v2, and the action names in SHORTCUTS.md.
+**ID column:** the command name in the program. IDs marked *(new)* do not exist as keymap actions yet; they are proposals for when the toolbar is built.
+**★** = a frequently used command, suggested for the thin top bar. Not all ~85 commands fit in the bar; the rest can stay in the menu.
+
+---
+
+## Brief for the icon AI (give this part as is)
+
+Design an **original** icon set for a native Windows Markdown viewer/editor called YAMDV. The icons go in a **thin top toolbar** and in menus.
+
+**Format**
+- One SVG per command, named `<id>.svg` (the IDs from the tables below).
+- `viewBox="0 0 24 24"`, with 2 px padding (20 × 20 live area).
+- Each icon must read clearly at **16 px** and **20 px**.
+
+**Style**
+- Line icons: stroke **1.5 px**, round caps and joins, pixel-aligned.
+- Fill only for small accents.
+- **One color only: `currentColor`** (no fixed colors, gradients or shadows), so the app can tint every icon for light mode, dark mode and Windows High Contrast.
+- The same visual weight and corner style across the whole set; modern and calm, close to Windows 11 Fluent in spirit.
+- **Do not copy** any existing icon set; every icon must be your own design, because the project is AGPL open source.
+
+**Letters**
+- Use letters only where they are the standard symbol: **B** (bold), **I** (italic), **S** (strikethrough), **H1 / H2 / H3** (headings).
+- Elsewhere, use no text in the icons.
+
+**Two-state commands** need two icons:
+- `toggle_favorite_off` (outline star) and `toggle_favorite_on` (filled star);
+- `theme_system`, `theme_light` and `theme_dark` for the three theme modes.
+
+**Deliver**
+- all SVGs;
+- one review sheet (PNG) that shows every icon at 16, 20 and 24 px, on a white and on a dark (#1e1e1e) background, with its ID under it.
+
+---
+
+## A. Clipboard and selection
+| ID | EN name | TR adı | Kısayol | Ne yapar | İkon fikri |
+|---|---|---|---|---|---|
+| `copy` ★ | Copy | Kopyala | Ctrl+C | Seçili metni panoya kopyalar | İki üst üste kağıt |
+| `copy_markdown` ★ | Copy as Markdown | Markdown olarak kopyala | Ctrl+Shift+C | Seçimi Markdown kaynağıyla kopyalar | Kopyala + küçük "#" |
+| `copy_rich_html` *(new)* | Copy as rich HTML | Zengin HTML olarak kopyala | — | Belgeyi biçimiyle kopyalar (Word'e yapıştırmak için) | Kopyala + küçük `</>` |
+| `copy_link` *(new)* | Copy link address | Bağlantı adresini kopyala | — | Üzerinde durulan bağlantının adresini kopyalar | Zincir halkası + kağıt |
+| `select_all` | Select all | Tümünü seç | Ctrl+A | Tüm metni seçer | Kesikli çerçeve içinde satırlar |
+| `cut` | Cut | Kes | Ctrl+X | Seçimi keser (düzenleme modu) | Makas |
+| `paste` | Paste | Yapıştır | Ctrl+V | Panodakini ekler; web içeriğini Markdown'a çevirir | Pano tahtası |
+| `paste_plain` | Paste as plain text | Düz metin olarak yapıştır | Ctrl+Shift+V | Biçimsiz yapıştırır | Pano + "T" yerine düz çizgiler |
+
+## B. View and appearance
+| ID | EN name | TR adı | Kısayol | Ne yapar | İkon fikri |
+|---|---|---|---|---|---|
+| `theme_system` / `theme_light` / `theme_dark` ★ | Theme mode | Tema modu | — | Sistemi izle / Açık / Koyu | Yarım daire / güneş / ay |
+| `color_scheme` | Color scheme… | Renk şeması… | — | 11 renk şemasının kartlarını açar | Palet |
+| `layout_settings` | Layout settings… | Düzen ayarları… | — | Yazı tipi, sütun genişliği ayarları | Sütun + kaydırıcı |
+| `toggle_sidebar` ★ | Show outline / sidebar | Ana hat / kenar çubuğu | Ctrl+\ | Kenar çubuğunu açar/kapatır | Solda dar panel olan pencere |
+| `toggle_single_newline_break` | Single newline as line break | Tek satır sonu = satır kırma | — | Tek Enter'ı satır kırma sayar | Dönüş oku ⏎ |
+| `toggle_word_count` *(new)* | Word count | Sözcük sayısı | — | Sağ alttaki sayaç rozetini açar | "123" yerine üç kısa çizgi + sayaç kutusu |
+| `fullscreen` | Full screen | Tam ekran | F11 | Dikkat dağıtmayan tam ekran | Dört köşe oku |
+| `heading_jump` ★ | Go to heading… | Başlığa git… | Ctrl+Shift+O | Başlık arama paletini açar | Büyüteç + başlık çizgisi |
+| `mind_map` ★ | View as mind map | Zihin haritası | Ctrl+Shift+M | Belgeyi zihin haritası olarak gösterir | Merkezden dallanan düğümler |
+
+## C. Edit modes
+| ID | EN name | TR adı | Kısayol | Ne yapar | İkon fikri |
+|---|---|---|---|---|---|
+| `live_edit` ★ | Live Edit | Canlı Düzenleme | F2 | Sayfayı yerinde düzenler (WYSIWYG) | Kalem + sayfa |
+| `split_edit` ★ | Split Edit | Bölünmüş Düzenleme | F3 | Solda kaynak, sağda önizleme | İkiye bölünmüş pencere |
+| `external_editor` | Open in external editor | Harici düzenleyicide aç | F4 | VS Code vb. düzenleyicide açar | Kutudan dışarı çıkan ok |
+
+## D. Export and print
+| ID | EN name | TR adı | Kısayol | Ne yapar | İkon fikri |
+|---|---|---|---|---|---|
+| `export_pdf` ★ | Export PDF… | PDF olarak dışa aktar | Ctrl+Shift+E | Seçilebilir metinli PDF üretir | Sayfa + aşağı ok + kıvrık köşe |
+| `export_html` | Export HTML… | HTML olarak dışa aktar | — | Tek dosya etkileşimli HTML üretir | Sayfa + `</>` |
+| `print` ★ | Print… | Yazdır | Ctrl+P | Yazıcıya gönderir | Yazıcı |
+
+## E. Favorites and file
+| ID | EN name | TR adı | Kısayol | Ne yapar | İkon fikri |
+|---|---|---|---|---|---|
+| `toggle_favorite_off` / `toggle_favorite_on` ★ | Add to / remove from favorites | Sık kullanılanlara ekle / çıkar | Ctrl+D | Dosyayı favorilere ekler/çıkarır | Boş yıldız / dolu yıldız |
+| `open_file` ★ | Open… | Aç… | Ctrl+O | Dosya açar | Açık klasör |
+| `reload` | Reload | Yeniden yükle | F5 | Dosyayı diskten yeniden okur | Dairesel ok |
+| `show_in_explorer` *(new)* | Show in Explorer | Gezginde göster | — | Dosyayı Windows Gezgini'nde seçer | Klasör + konum işareti |
+| `copy_file_path` *(new)* | Copy file path | Dosya yolunu kopyala | — | Tam yolu panoya kopyalar | Kağıt + eğik çizgi yolu |
+| `reopen_with_encoding` *(new)* | Reopen with encoding ▸ | Kodlamayla yeniden aç | — | Dosyayı başka karakter kodlamasıyla açar | Dairesel ok + "Aa" yerine küçük ızgara |
+| `document_info` *(new)* | Document info… | Belge bilgisi | — | Kodlama, boyut, sözcük sayısı | Daire içinde "i" |
+
+## F. App
+| ID | EN name | TR adı | Kısayol | Ne yapar | İkon fikri |
+|---|---|---|---|---|---|
+| `settings` ★ | Settings… | Ayarlar | Ctrl+, | Ayarlar panelini açar | Dişli |
+| `shortcuts_help` | Keyboard shortcuts | Klavye kısayolları | F1 | Kısayol listesini gösterir | Klavye |
+| `about` *(new)* | About YAMDV | YAMDV hakkında | — | Sürüm, lisans, yollar | Daire içinde soru/bilgi |
+
+## G. Format ▸ (F2 / F3)
+| ID | EN name | TR adı | Kısayol | Ne yapar | İkon fikri |
+|---|---|---|---|---|---|
+| `bold` | Bold | Kalın | Ctrl+B | Kalın yapar | **B** |
+| `italic` | Italic | İtalik | Ctrl+I | Eğik yapar | *I* |
+| `strikethrough` | Strikethrough | Üstü çizili | Ctrl+Shift+X | Üstünü çizer | Çizgili S |
+| `highlight` | Highlight | Vurgula | Ctrl+Shift+H | Arka planı işaretler (==metin==) | Fosforlu kalem |
+| `inline_code` | Inline code | Satır içi kod | Ctrl+` | `kod` biçimi | Küçük `< >` |
+| `link` | Link… | Bağlantı | Ctrl+K | Bağlantı ekler/düzenler | Zincir halkası |
+| `heading_1` / `heading_2` / `heading_3` | Heading 1 / 2 / 3 | Başlık 1 / 2 / 3 | Ctrl+1…3 | Başlık seviyesi | H1 / H2 / H3 |
+| `paragraph` | Paragraph | Paragraf | Ctrl+Shift+0 | Başlığı paragrafa çevirir | ¶ |
+| `quote` | Quote | Alıntı | Ctrl+Shift+Q | Alıntı bloğu | Tırnak işareti |
+| `bullet_list` | Bullet list | Madde işaretli liste | Ctrl+Shift+8 | Madde listesi | Noktalı satırlar |
+| `numbered_list` | Numbered list | Numaralı liste | Ctrl+Shift+7 | Numaralı liste | 1-2-3 satırlar (rakam yerine küçük çubuklar) |
+| `task_list` | Task list | Görev listesi | Ctrl+Shift+9 | Onay kutulu liste | Kutu + tik + satır |
+| `clear_formatting` *(new)* | Clear formatting | Biçimi temizle | — | Seçimdeki işaretleri kaldırır | Silgi |
+
+## H. Insert ▸ (F2 / F3)
+| ID | EN name | TR adı | Kısayol | Ne yapar | İkon fikri |
+|---|---|---|---|---|---|
+| `insert_table` | Table… | Tablo | Ctrl+T | 10×10 seçiciyle tablo ekler | Izgara |
+| `code_block` | Code block | Kod bloğu | Ctrl+Shift+K | Kod bloğu ekler | Çerçeve içinde `{ }` |
+| `callout_note` | Note callout | Not kutusu | — | Not kutusu ekler | Kutu + "i" |
+| `callout_tip` | Tip callout | İpucu kutusu | — | İpucu kutusu | Ampul |
+| `callout_important` | Important callout | Önemli kutusu | — | Önemli kutusu | Konuşma balonu + ünlem |
+| `callout_warning` | Warning callout | Uyarı kutusu | — | Uyarı kutusu | Üçgen + ünlem |
+| `callout_caution` | Caution callout | Dikkat kutusu | — | Dikkat kutusu | Sekizgen + ünlem |
+| `math_block` | Math block | Matematik bloğu | — | `$$` formül bloğu | Σ veya √ |
+| `mermaid_block` | Mermaid diagram | Mermaid diyagramı | — | Akış şeması bloğu ekler | Oklarla bağlı üç kutu |
+| `horizontal_rule` | Horizontal rule | Yatay çizgi | — | Ayırıcı çizgi | Ortada yatay çizgi |
+| `image` | Image… | Resim | Ctrl+Shift+I | Resim ekler | Dağ + güneş çerçevesi |
+| `footnote` | Footnote | Dipnot | — | Dipnot ekler | Küçük üst simge ¹ + satır |
+
+## I. Table ▸ (when the caret is inside a table)
+| ID | EN name | TR adı | Ne yapar | İkon fikri |
+|---|---|---|---|---|
+| `table_row_above` / `table_row_below` *(new)* | Add row above / below | Üste / alta satır ekle | Satır ekler | Izgara + yukarı/aşağı "+" |
+| `table_col_left` / `table_col_right` *(new)* | Add column left / right | Sola / sağa sütun ekle | Sütun ekler | Izgara + sol/sağ "+" |
+| `table_delete_row` / `table_delete_col` *(new)* | Delete row / column | Satırı / sütunu sil | Siler | Izgara + "−" |
+| `table_align_left` / `_center` / `_right` / `_none` *(new)* | Align column | Sütunu hizala | Hizalar | Hizalama çizgileri |
+| `table_sort_asc` / `table_sort_desc` *(new)* | Sort A→Z / Z→A | Sırala | Sütuna göre sıralar | Ok + çizgiler |
+| `table_move_row_up` / `_down` *(new)* | Move row up / down | Satırı taşı | Satırı taşır | Satır + dikey ok |
+| `table_move_col_left` / `_right` *(new)* | Move column left / right | Sütunu taşı | Sütunu taşır | Sütun + yatay ok |
+| `table_delete` *(new)* | Delete table | Tabloyu sil | Tabloyu kaldırır | Izgara + çöp kutusu |
+| `table_export_csv` *(new)* | Export table as CSV… | Tabloyu CSV olarak kaydet | CSV dosyası | Izgara + aşağı ok |
+| `table_copy_csv` *(new)* | Copy table as CSV | Tabloyu CSV olarak kopyala | Panoya CSV | Izgara + kopyala |
+| `view_fullscreen` *(new)* | Fullscreen viewer | Tam ekran görüntüle | Tablo/resim/diyagramı büyük açar | Köşe okları ⛶ |
+
+## J. On a diagram or image
+| ID | EN name | TR adı | Ne yapar | İkon fikri |
+|---|---|---|---|---|
+| `copy_png` *(new)* | Copy as PNG | PNG olarak kopyala | Diyagramı resim olarak kopyalar | Resim + kopyala |
+| `copy_source` *(new)* | Copy source | Kaynağı kopyala | Mermaid kaynağını kopyalar | `</>` + kopyala |
+| `save_png` *(new)* | Save as PNG… | PNG olarak kaydet | Diyagram/zihin haritasını dosyaya kaydeder | Resim + aşağı ok |
+
+---
+
+## Optional: useful toolbar commands that are not in the right-click menu
+| ID | EN name | TR adı | Kısayol | İkon fikri |
+|---|---|---|---|---|
+| `find` ★ | Find | Bul | Ctrl+F | Büyüteç |
+| `replace` | Find & replace | Bul ve değiştir | Ctrl+H | Büyüteç + iki ok |
+| `undo` / `redo` | Undo / Redo | Geri al / Yinele | Ctrl+Z / Ctrl+Y | Kıvrık ok sola / sağa |
+| `save` | Save | Kaydet | Ctrl+S | Disket yerine aşağı ok + tepsi |
+| `nav_back` / `nav_forward` | Back / Forward | Geri / İleri | Alt+← / Alt+→ | Ok sola / sağa |
+| `font_bigger` / `font_smaller` | Zoom in / out | Yakınlaştır / uzaklaştır | Ctrl+= / Ctrl+- | "A" yerine büyük/küçük çizgi + "+"/"−" |

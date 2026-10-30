@@ -1,0 +1,79 @@
+# HARD-02 long fuzzing (S-TEST-01, prompt 019 §3): one job per target, 1 h each, on the
+# platform-independent crates. Manual only; read-only token, no secrets, actions pinned by SHA.
+name: fuzz-long
+
+on:
+  workflow_dispatch:
+    inputs:
+      seconds:
+        description: libFuzzer -max_total_time per target
+        default: "3600"
+      targets:
+        description: JSON list of targets (empty = all 18)
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  fuzz:
+    name: fuzz ${{ matrix.target }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    strategy:
+      fail-fast: false
+      matrix:
+        target: ${{ fromJSON(github.event.inputs.targets != '' && github.event.inputs.targets || '["parse_layout","ini","html","url","highlight","math","mermaid","svg_parse","html_to_md","cf_html","ico_dir","journal","ipc_records","entities","regex_template","tsv_csv","table_model","pdf_doc"]') }}
+    env:
+      T: ${{ matrix.target }}
+      SECS: ${{ github.event.inputs.seconds || '3600' }}
+      # V2-J §1.2: cf_html's libFuzzer process grows (corpus/feature tables; the product is flat
+      # at 4.8 MiB natively), so it gets a higher RSS limit.
+      RSS: ${{ matrix.target == 'cf_html' && '6144' || '2560' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: toolchain (nightly) and cargo-fuzz
+        run: |
+          rustup toolchain install nightly --profile minimal
+          cargo +nightly install cargo-fuzz --version 0.13.2 --locked
+      - name: build
+        working-directory: fuzz
+        run: cargo +nightly fuzz build "$T" -O
+      - name: fuzz ${{ matrix.target }}
+        id: run
+        working-directory: fuzz
+        run: |
+          mkdir -p "corpus/$T" "artifacts/$T" out
+          seeds=""
+          if [ -d "seeds/$T" ]; then seeds="seeds/$T"; fi
+          set +e
+          cargo +nightly fuzz run "$T" -O "corpus/$T" $seeds -- \
+            -max_total_time="$SECS" -timeout=20 -rss_limit_mb="$RSS" -max_len=65536 \
+            -print_final_stats=1 2>&1 | tail -n 400 > "out/$T.log"
+          code=${PIPESTATUS[0]}
+          set -e
+          execs=$(grep -m1 'stat::number_of_executed_units' "out/$T.log" | awk '{print $2}')
+          secs=$(grep -m1 'stat::average_exec_per_sec' "out/$T.log" | awk '{print $2}')
+          crashes=$(ls "artifacts/$T" | wc -l)
+          echo "$T exit=$code execs=${execs:-?} exec_per_sec=${secs:-?} artifacts=$crashes seconds=$SECS" | tee "out/$T.summary"
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+      - name: minimize corpus
+        if: ${{ !cancelled() }}
+        working-directory: fuzz
+        run: |
+          timeout 900 cargo +nightly fuzz cmin "$T" -O "corpus/$T" || true
+          du -sb "corpus/$T" | tee -a "out/$T.summary"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ !cancelled() }}
+        with:
+          name: fuzz-${{ matrix.target }}
+          path: |
+            fuzz/out/
+            fuzz/artifacts/${{ matrix.target }}/
+            fuzz/corpus/${{ matrix.target }}/
+          if-no-files-found: warn
+          retention-days: 14
+      - name: verdict
+        run: test "${{ steps.run.outputs.code }}" = "0"

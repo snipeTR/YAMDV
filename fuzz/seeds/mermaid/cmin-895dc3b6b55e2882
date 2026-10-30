@@ -1,0 +1,79 @@
+sequenceDiagram
+  t S-->>-B: 200 OK
+  Note right of S: ccehad
+  loop every 5->>-B: 200 OK
+  Note right of S: ccehad
+  loop every 5 min3
+    B-)S: hear
+  loop every 5 min
+    B-)S: heartbdat
+  end
+  alt vauenceDiagram
+  t S-->>-B: 200 OK
+  Note right of S: ccehad
+  loop every 5 min3
+    B-)S: hear
+  loop every 5 min
+    B-)S: heartbdat
+  end
+  alt valid password666666666666666666
+   S->>B: token
+  else invalid
+    S-xB: reject
+  end
+  Note over B,S: TLStbeat
+  end
+  alt valid password
+    S->>B: token
+  else invalid
+    S-xB: reject
+  end
+  Note over$B~S: TLS everyw: token
+  else invalid
+    S-xB: reject
+  end
+  Note over B,S: TLStbeat
+  end
+  alt valid password
+    S->>B: token
+  else invalid
+    S-xB: reject
+  end
+  Note over B,S: TL min3
+    B-)S: hear
+  loop every 5 min
+   ]B-)S: heartbdat
+  end
+  alt vauenceDiagram
+  t S-->>-B: 200 OK
+  Note right of S: ccehad
+  loop every 5 min3
+    B-)S: hear
+  loop every 5 min
+    B-)S: heartbdat
+  end
+  alt valid password666666666666666666
+   S->>B: token
+  else invalid
+    S-xB: reject
+  end
+  Note over B,S: TLStbeat
+  end
+  alt valid password
+    S->>B: token
+  else invalid
+    S-xB: reject
+  end
+  Note over$B~S: TLS everyw: token
+  else invalid
+    S-xB: reject
+  end
+  Note over B,S: TLStbeat
+  end
+  alt valid password
+    S->>B: token
+  else invalid
+    S-xB: reject
+  end
+  Note over B,S: TLS everywhere 
+ B->>B: render

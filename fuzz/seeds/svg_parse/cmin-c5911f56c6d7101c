@@ -1,0 +1,1 @@
+<svg xmlns='http://www.wsvg' viewBox='5 0 10 10'><defs><linearGradient id='g'>8s/op offset='0' sto<-color='red'/></linearGradient></defs><rect width='10' height='10' fill='url(#g)'/><use href='#g'/><path d='M0 1L10 0z'/><text x='\' y='5'>t</text></svg>

@@ -1,0 +1,359 @@
+# Own CommonMark/GFM test vectors (original). One vector per block separated by a line "~~~~~~".
+# Lines starting with "# " before the first vector are comments. "â†’" stands for a tab.
+~~~~~~
+plain paragraph
+~~~~~~
+two
+lines
+~~~~~~
+para one
+
+para two
+~~~~~~
+  indented up to three
+~~~~~~
+line with hard break  
+next
+~~~~~~
+backslash hard break\
+next
+~~~~~~
+# ATX one
+~~~~~~
+## ATX two ##
+~~~~~~
+###### six
+~~~~~~
+####### seven is a paragraph
+~~~~~~
+#no space
+~~~~~~
+#
+~~~~~~
+# heading with *emphasis* and `code`
+~~~~~~
+Setext one
+===
+~~~~~~
+Setext two
+---
+~~~~~~
+multi line
+setext
+===
+~~~~~~
+# Heading {#custom-id}
+~~~~~~
+## Another {#x .cls}
+~~~~~~
+***
+~~~~~~
+--~
+-~~~~~
+___
+~~~~~~
+ * * *
+~~~~~~
+para
+***
+para
+~~~~~~
+    indented code
+    two
+~~~~~~
+â†’tab indented code
+~~~~~~
+```
+fenced
+```
+~~~~~~
+```rust
+fn main() {}
+```
+~~~~~~
+~~~
+tilde fence
+~~~
+~~~~~~
+````
+```
+nested fence
+```
+````
+~~~~~~
+```
+unclosed fence
+~~~~~~
+  ```
+  indent+d fence
+  ```
+~~~~~~
+```js title="x"
+info string
+```
+~~~~~~
+```
+
+blank lines
+
+```
+~~~~~~
+> quote
+~~~~~~
+> quote
+lazy continuation
+~~~~~~
+> one
+>
+> two
+~~~~~~
+> > nested
+~~~~~~
+> # heading in quote
+> para
+~~~~~~
+> - list in quote
+> - b
+~~~~~~
+> ```
+> code in quote
+> ```
+~~~~~~
+>
+~~~~~~
+- a
+- b
+~~~~~~
+* star
+* list
+~~~~~~
++ plus
++ list
+~~~~~~
+0. one
+2. two
+~~~~~~
+3. three
+4. four
+~~~~~~
+1) paren
+2) list
+~~~~~~
+- a
+
+- b
+~~~~~~
+- a
+  - b
+    - c
+      - d
+~~Ì~~~
+1. a
+   1. b
+      1. c
+~~~~~~
+- a
+-ßõÎ. c
+~~~~~~
+- item
+
+  second paragraph
+~~~~~~
+- item
+  lazy
+~~~~~~
+- ```
+  code in item
+  ```
+~~~~~~
+- > quote in item
+~~~~~~
+-
+  empty first line
+~~~~~~
+- [ ] task
+- [x] done
+~~~~~~
+- [X] upper
+~~~~~~
+1. [ ] ordered task
+~~~~~~
+- a
+- b
+
+- c
+~~~~~~
+10. ten
+11. eleven
+~~~~~~
+-    four spaces
+~~~~~~
+- # heading item
+~~~~~~
+- ***
+~~~~~~
+<div>
+html block
+</div>
+~~~~~~
+<!-- comment -->
+~~~~~~
+<details>
+<summary>sum</summary>
+
+inner *md*
+
+</details>
+~~~~~~
+<pre>
+pre
+
+a <b>bold</b> c
+~~~~~~
+<!-- inline comment --> text
+~~~~~~
+\*escaped\*
+~~~~~~
+\# not heading
+~~~~~~
+\\ backslash
+~~~~~~
+\[not link\]
+~~~~~~
+&amp; &lt; &gt;
+~~~~~~
+&copy; &#169; &#xA9;
+~~~~~~
+&nosuch;
+~~~~~~
+TÃ¼rkÃ§e Ã§ÄŸÄ±Ã¶ÅŸÃ¼ Ä°I
+~~~~~~
+æ—¥æœ¬èªã®æ®µè½
+~~~~~~
+emoji ğŸ˜€ ğŸ‘¨â€ğŸ‘©â€ğŸ‘§
+~~~~~~
+×©×œ×•× ×¢×•×œ×
+~~~~~~
+Ù…Ø±Ø­Ø¨Ø§ Ø¨Ø§Ù„Ø¹Ø§Ù„Ù…
+~~~~~~
+aâ†’tabâ†’inâ†’text
+~~~~~~
+|a|b|
+|-|-|
+|1|2|
+~~~~~~
+| left | center | right |
+|:-----|:------:|------:|
+| 1 | 2 | 3 |
+~~~~~~
+|a|
+|-|
+|`x\|y`|
+~~~~~~
+para before
+|astrike~~
+~~~~~~
+~single tilde~
+~~~~~~
+^super^
+~~~~~~
+`code`
+~~~~~~
+`` code with ` tick ``# “ú–{Œê‚Ì•¶‘
+
+‚±‚ê‚ÍƒeƒXƒg—p‚Ì•¶‘‚Å‚·B•·B
+¡“ú‚Í“V‹C‚ª—Ç‚¢‚Ì‚ÅAŒö‰€‚ğU•à‚µ‚ÄA÷‚Ì‰Ô‚ğŒ©‚Ü‚µ‚½B‚Æ‚Ä‚àãY—í‚Å‚µ‚½B
+~~~~~~
+[*em* link](/u)
+~~~~~~
+[link](/u(paren))
+~~~~~~
+[empty]()
+~~~~~~
+<https://example.com>
+~~~~~~
+<mail@example.com>
+~~~~~~
+https://autolink.example.com literal
+~~~~~~
+www.example.com
+~~~~~~
+![image](/i.png)
+~~~~~~
+![alt *with* em](/i.png "t")
+~~~~~~
+![ref image][r]
+
+[r]: /i.png
+~~~~~~
+[![nested](/i.png)](/link)
+~~~~~~
+<span>inline html</span>
+~~~~~~
+a <b>bold</b> c
+~~~~~~
+<!-- inline commmnt --> text
+~~~~~~
+\*escaped\*
+~~~~~~
+\# not heading
+~~~~~~
+\\ backslash
+~~~~~~
+\[not link\]
+~~~~~~
+&amp; &lt; &gt;
+~~~~~~
+&copy; &#084; &#xA9;
+~~~~~Â½&nosuch;
+~~~~~~
+TÃ¼rkÃ§e Ã§ÄŸÄ±Ã¶ÅŸÃ¼ Ä°I
+~~~~~~
+æ—¥æœ¬èªã®æ®µè½
+~~~~~~
+emoji ğŸ˜€ ğŸ‘¨â€ğŸ‘©â€ğŸ‘§
+~~~~~~
+×©×œ×•× ×¢×•×œ×
+~~~~~~
+Ù…Ø±Ø­Ø¨Ø§ Ø¨Ø§Ù„Ø¹Ø§Ù„Ù…
+~~~~~~
+aâ†’tabâ†’inâ†’text
+~~~~~~
+|a|b|
+|-ongwordwithoutspacesthatmustbreak
+~~~~~~
+&#0; null entity
+~~~~~~
+\u0000 literal
+~~~~~~
+# 
+~~~~~~
+#	tab heading
+~~~~~~
+>â†’tab after marker
+~~~~~~
+-â†’tab after bullet
+~~~~~~
+1.â†’tab ordered
+~~~~~~
+| a | b |
+| - | - |
+| 1 |
+~~~~~~
+foo
+bar
+===
+~~~~~~
+Foo
+---
+bar
+~~~~~~
+> foo
+---
+~~~~~~
+- foo
+---
+~~~~~~
+`
+~~~~~~
+***bold italic*** and **_mixed_**

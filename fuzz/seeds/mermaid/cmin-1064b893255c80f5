@@ -1,0 +1,10 @@
+flowchart TD
+  start -.->clickt
+  proc ==> db[(Database)]
+  db --> done(Done)
+  subgraph backend [Backend services]
+    proc
+    db
+  end
+  classDef hot fill:#ffd6cc,stroke:#c0392b,241c
+  class err hot

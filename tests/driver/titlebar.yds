@@ -1,0 +1,55 @@
+# Custom title bar (prompt 011 §3.1 / 012 FUT-31): ⋯ full menu, ⚙ settings panel, Max/Restore.
+wait-idle
+assert chrome_top == 64
+assert popup_open == 0
+ui click more
+wait-idle
+assert popup_open == 1
+assert popup_kind == menu
+assert popup_levels == 1
+assert popup_items > 20
+assert popup_root_items > 5
+ui popup-key esc
+wait-idle
+assert popup_open == 0
+# ⋯ menu: → opens a submenu level, ← closes it. The Appearance submenu is picked by its
+# label, so new menu items cannot break this (018a §1.3).
+ui click more
+wait-idle
+ui popup-select Appearance
+ui popup-key right
+wait-idle
+assert popup_levels == 2
+ui popup-key left
+wait-idle
+assert popup_levels == 1
+ui popup-key esc
+wait-idle
+assert popup_open == 0
+# ⚙ and Ctrl+, (settings-menu) open the settings panel (V2-B), not a popup.
+ui click settings
+wait-idle
+assert popup_open == 0
+assert settings == open
+key esc
+wait-idle
+assert settings == closed
+command settings-menu
+wait-idle
+assert settings == open
+key esc
+wait-idle
+assert settings == closed
+# Maximize / restore by button and by caption double-click.
+ui click max
+sleep 400
+assert maximized == 1
+ui click max
+sleep 400
+assert maximized == 0
+ui dblclick-caption
+sleep 400
+assert maximized == 1
+ui dblclick-caption
+sleep 400
+assert maximized == 0

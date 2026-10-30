@@ -1,0 +1,10 @@
+classDiagram
+  tr]st' --e: Logil autonum
+  strt]) --e: Log as bSegin
+trt]) --e: Log as Segin
+ >  strt]' --e: Login fl autonum
+  strt]) --e: Log as Segin
+t]' --e: Login fl autonum
+  strt]) --e: Log as Segin
+ >-S>--D: 00-S>--D: 004 Oheartbe>+irt
+ ]

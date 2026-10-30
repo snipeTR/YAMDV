@@ -1,0 +1,13 @@
+# Spec patches of prompt 018a (Phase V2-H tests + release) §1.4, extracted verbatim from docs/prompts/018a_V2H_TESTS_RELEASE.md.
+
+=== P-53 docs/SECURITY.md REPLACE
+--- old
+which shows exactly one native file-open/save or print dialog and exits
+--- new
+which shows exactly one native file-open/save or print dialog, runs one print/PDF export job (ADR-0018) or performs one taskbar jump-list update, and exits
+=== P-54 docs/UI_SPEC.md INSERT_AFTER
+--- anchor
+| `general.remember_window_geometry` | bool | `true` | |
+--- new
+| `general.app_icon` | path | `""` | empty = default; absolute `.ico` ≤ 1 MB (R-SYS-08) |
+=== end

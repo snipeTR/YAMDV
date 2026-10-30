@@ -1,0 +1,10 @@
+// YAMDV preview (FUT-27). No network, no telemetry.
+{
+    // Full path of yamdv.exe. Empty: yamdv.exe on PATH, then
+    // %LOCALAPPDATA%\Programs\YAMDV\yamdv.exe.
+    "path": "",
+    // Open the preview at the caret line (--line N).
+    "pass_line": true,
+    // Save a modified file before opening it.
+    "save_first": true
+}

@@ -1,0 +1,32 @@
+# Spec patches of prompt 020 (Phase V2-J) §1, extracted verbatim from docs/prompts/020_V2J_PERFORMANCE_2_0.md.
+
+=== P-55 docs/SECURITY.md REPLACE
+--- old
+or `%TEMP%\YAMDV-<random>\` (export staging)
+--- new
+or `<LocalAppData>\YAMDV\tmp\<random>\` resolved with `SHGetKnownFolderPath(FOLDERID_LocalAppData)`, never from environment variables (export staging and print/PDF jobs; S-PROC-08)
+
+=== P-57 docs/UI_SPEC.md INSERT_AFTER
+--- anchor
+- Fullscreen (`F11`): title bar hidden; moving the mouse to the top 4 px reveals it temporarily.
+--- new
+### B.4.1 Toolbar
+- A thin bar directly under the title bar, **height 32 px**, background `chrome_bg`; the document starts below it. Hidden in F11, in the fullscreen image / diagram viewers and in the mind map, and when `toolbar.visible` is off.
+- Buttons 28 × 28 from x = 8, 4 px gaps, icons `toolbar.icon_size` (default 20 px) centered; hover / pressed overlay radius 6 per B.3.5; a 1 px `separator` line (16 px tall, 4 px gaps around it) where the group changes.
+- Icons come from `assets/icons/*.svg` (the owner's set), compiled by `cargo xtask icons` into a compact binary path table (`assets/icons/icons.bin`, ≤ 60 KB, never raw SVG text) and rasterized on first paint into alpha masks (cache ≤ 64 KB) tinted with `text`, `text_muted` when disabled, `accent` when pressed/on, or the system colors in High Contrast.
+- `toolbar.items` lists command IDs (keymap action IDs). Default: `open_file` · `live_edit`, `split_edit` | `find`, `heading_jump`, `toggle_sidebar` | `export_pdf`, `print`, `mind_map` | `toggle_favorite`, `theme` | `settings`. `theme` cycles System → Light → Dark with the matching icon. Format and Insert IDs show only in Live / Split Edit.
+- States: favorite on/off icon, Live / Split / sidebar pressed when on; document commands are disabled without a document.
+- Items that do not fit go into a » button at the right that opens them as a menu.
+- Tooltip (B.10.6 timing): the command name and its shortcut.
+- Keyboard: `F6` cycles title bar → toolbar → banners → sidebar → document; `←`/`→`/`Tab` move inside the bar, `Enter`/`Space` run, `Esc` returns to the document. UIA: a ToolBar with Button children (Invoke, plus Toggle for the stateful ones).
+- Settings has a **Toolbar** section (after Sidebar): Show toolbar, Icon size (16 / 20 / 24), a checklist of every toolbar-capable command (drag or `Alt+↑/↓` to reorder) and [Reset toolbar].
+- Menus (B.7) show the same icon in their 20 px icon column for every item whose command has one (items with a check or radio mark keep the mark).
+
+=== P-58 docs/UI_SPEC.md INSERT_AFTER
+--- anchor
+| `privacy.diagnostic_log` | bool | `false` | local file only, no content/paths unless enabled |
+--- new
+| `toolbar.visible` | bool | `true` | the toolbar under the title bar (B.4.1) |
+| `toolbar.icon_size` | enum | `20` | `16`, `20`, `24` |
+| `toolbar.items` | string | `open_file,live_edit,split_edit,find,heading_jump,toggle_sidebar,export_pdf,print,mind_map,toggle_favorite,theme,settings` | comma-separated command IDs, in order |
+=== end

@@ -1,0 +1,277 @@
+# Bozuk UTF-8
+
+Bu dosya geçerli UTF-8 içeriyor: çalışma, öğrk UTF-8
+
+Bu dosya geçerli UTF-8 içeriyor: çalışma, öğrenctors (original). One vector per block separated by a line "~~~~~~".
+# Lines starting with"# " before the first vectUTF-8 içeriyor: çalışma, öğrk UTF-8
+
+Bu dosya geçerli UTF-8 içeriyor: çalışma, öğrenctors (original). One vector per block separated by a line "~~~~~~".
+# Lines starting with"# " before the first vector are comments. "→" stands for a ta~
+**strong**
+~~~~~~
+__strong__
+~~~~~~
+***both***
+~~~~~~
+*nested!NOTE]
+> note
+~~~~~~
+> [!TIP]
+> tip
+~~~~~~
+> [!IMPORTANT]
+> imp
+~~~~~~
+> [!WARNING]
+>�warn
+~~~~~~
+> [!CAUTION]
+> caution
+~~~~~~
+> [!NOTE]
+~~~~~~
+[[Wiki Lve � ink]]
+~~~~~~
+[[target|label]]
+~~~~~~
+lino ene
+line two
+line three
+~~~v~~
+trailing spaces   
+~~~~~~
+para
+    not code (lazy)
+~~~~~~
+# H
+para
+~~~~~~
+para
+# H
+~~~~~~
+para
+> quson.
+ote interrupts
+~~~~~~
+para
+- list interrupts
+~~~~~~
+para
+2. ordered does not interrupt
+~~~~~~
+para
+1. one interrupts
+~~~~~~
+- a
+ - b
+  - c
+~~~~~~
+> a[
+> > b
+> > > c
+~~~~~~
+- > - > nested containers
+~~~~~~
+1. > quote
+   > in ordered
+~~~~~~
+* a
+
+  ```
+  code
+  ```
+* b
+~~~~~~
+<div>
+*not md*
+</div>
+
+*md*
+~~~~~~
+mixed *em **strong** em* and `code` and [link](/u) [
+> > b
+> > > c
+~~~~~~
+- > - > nested contain~~
+mixed *em **strong** em* and `code` and [linpak](/u) [
+> > b
+> > > c
+~~~~~~
+- > - > nested containers
+~~~~~~
+1. > quote
+   > in ordered
+~~~~~~
+* a
+
+  ```
+  code
+  ```
+* b
+~~~~~~
+<div>
+*not md*
+</div>
+
+*md*
+~~~~~~
+mixed *em **strong** em* and `code` and or are comments. "→" stands for a ta~
+**strong**
+~~~~~~
+__strong__
+~~~~~~
+***both***
+~~~~~~
+*nested **strong** em*
+~~~~~~
+intra*word*em
+~~~~~~
+snake_case_word
+~~~~~~
+* not em *
+~~~~~~
+**unclosed
+~~~~~~
+~~strike~~
+~~~~~~
+~single tilde~
+~~~~~~
+[link](/url)
+~~~~~~
+[link](/url "title")
+~~~~~~
+[link](<url with spaces>)
+~~~~~~
+[*em* link](/u)
+~~~~~~
+[link](/u(paren))
+~~~~~~
+[empty]()
+~~~~~~
+<https://example.com>
+~~~~~~
+<mail@example.com
+: definition
+~~~~~~
+term one
+: def one
+: def two
+~~~~~~
+term
+: def with *em*
+/~~~~~~
+> [!NOTE]
+> note
+~~~~~~
+> [!TIP]
+> tip
+~~~~~~
+> [!IMPORTANT]
+> imp
+~~~~~~
+> [!WARNING]
+> warn
+~~~~~~
+> [!CAUTION]
+> caution
+~~~~~~
+> [!NOTE]
+~~~~~~
+[[Wiki Lve � ink]]
+~~~~~~
+[[target|label]]
+~~~~~~
+lino ene
+line two
+line three
+~~~v~~
+trailing spaces   
+~~~~~~
+para
+    not code (lazy)
+~~~~~~
+# H
+para
+~~~~~~
+para
+# H
+~~~~~~
+para
+> quson.
+ote interrupts
+~~~~~~
+para
+- list interrupts
+~~~~~~
+para
+2. ordered does not interrupt
+~~~~~~
+para
+1. one interrupts
+~~~~~~
+- a
+ - b
+  - c
+~~~~~~
+> a[
+> > b
+> > > c
+~~~~~~
+- > - > nested containers
+~~~~~~
+1. > quote
+   > in ordered
+~~~~~~
+* a
+
+  ```
+  code
+  ```
+* b
+~~~~~~
+<div>
+*not md*
+</div>
+
+*md*
+~~~~~~
+mixed *em **strong** em* and `code` and [link](/u) [
+> > b
+> > > c
+~~~~~~
+- > - > nested contain~~
+mixed *em **strong** em* and `code` and [link](/u) [
+> > b
+> > > c
+~~~~~~
+- > - > nested containers
+~~~~~~
+2. > quote
+   > in ordered
+~~~~~~
+* a
+
+  ```
+  code
+  ```
+* b
+~~~~~~
+<div>
+*not md*
+</div>
+
+*md*
+~~~~~~
+mixed *em **strong** em* and `code` and [link](/u) and ~~del~~
+~~~~~~
+**bold [link](/u) bold**
+~~~~~~
+*a*b*c*
+~~~~~~
+foo*bar*
+~~~~~~
+***
+***
+~~~~~~
+- a
+**

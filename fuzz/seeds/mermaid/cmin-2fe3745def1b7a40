@@ -1,0 +1,9 @@
+flowchart TD
+  satrt([Vtart]) --> input[/Read input/]
+  inpu
+  subgt --> check{Validc e?h} 
+ck -->|yes| proc[[Process data]]
+  check -- no --> err((Error))
+  err -.-> input
+  proc ==> dssDefr -.-rttck -- no --> err((Error))
+ kend 

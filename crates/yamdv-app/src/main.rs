@@ -1,0 +1,127 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+//! `yamdv.exe` — composition root (ARCHITECTURE §E.2): hardening, CLI, reading windows.
+#![cfg_attr(windows, windows_subsystem = "windows")]
+
+// On non-Windows hosts only the parser is exercised (by unit tests).
+#[cfg_attr(not(windows), allow(dead_code))]
+mod cli;
+
+/// Measurement builds count Rust heap bytes (`ui mem-report`, prompt 018a §1.1).
+#[cfg(all(windows, feature = "mem-stats", not(feature = "alloc-sites")))]
+#[global_allocator]
+static ALLOC: yamdv_platform_win::heapcount::Counting = yamdv_platform_win::heapcount::Counting;
+
+/// F-39 diag builds tag every live allocation with its call stack (prompt 019).
+#[cfg(all(windows, feature = "alloc-sites"))]
+#[global_allocator]
+static ALLOC: yamdv_platform_win::allocsites::Tagged = yamdv_platform_win::allocsites::Tagged;
+
+#[cfg(windows)]
+fn main() {
+    #[cfg(feature = "alloc-sites")]
+    yamdv_platform_win::allocsites::start();
+    // S-PROC-01..04: hardening is the very first thing the process does.
+    // Printing processes (driver code runs in-process) skip StrictHandleCheck and ACG (ADR-0018).
+    let printing = std::env::args_os()
+        .nth(1)
+        .is_some_and(|a| a == "--export-pdf" || a == "--print-job");
+    let _steps = if printing {
+        yamdv_platform_win::hardening::apply_for_print()
+    } else {
+        yamdv_platform_win::hardening::apply()
+    };
+    yamdv_platform_win::crash::install(cli::VERSION);
+    use yamdv_platform_win::console::{Stream, write};
+    let code = match cli::parse(
+        std::env::args_os()
+            .skip(1)
+            .map(|a| a.to_string_lossy().into_owned()),
+    ) {
+        cli::Command::Help => {
+            write(Stream::Out, &cli::help_text());
+            0
+        }
+        cli::Command::Version => {
+            write(Stream::Out, &cli::version_text());
+            0
+        }
+        cli::Command::Usage(msg) => {
+            write(Stream::Err, &msg);
+            cli::EXIT_USAGE
+        }
+        cli::Command::DialogHost {
+            kind,
+            owner,
+            nonce,
+            arg,
+        } => yamdv_platform_win::dialog_host::run_host(&kind, owner, nonce, arg.as_deref()),
+        cli::Command::ExportHtml {
+            input,
+            out,
+            theme,
+            dark,
+        } => yamdv_platform_win::export::cli_html(&input, out.as_deref(), theme.as_deref(), dark),
+        cli::Command::ExportPdf {
+            input,
+            out,
+            theme,
+            dark,
+        } => yamdv_platform_win::print::cli_pdf(&input, out.as_deref(), theme.as_deref(), dark),
+        cli::Command::PrintJob(file, link) => yamdv_platform_win::print::cli_print_job(&file, link),
+        cli::Command::Install { launch } => yamdv_platform_win::install::install(launch),
+        cli::Command::Uninstall { keep } => yamdv_platform_win::install::uninstall(keep),
+        cli::Command::UninstallHelper(pid) => yamdv_platform_win::install::uninstall_helper(pid),
+        cli::Command::Register => i32::from(!yamdv_platform_win::shell::register()),
+        cli::Command::Unregister => {
+            yamdv_platform_win::shell::unregister();
+            0
+        }
+        cli::Command::SetDefault => i32::from(!yamdv_platform_win::shell::set_default_flow()),
+        cli::Command::ContextMenu(on) => i32::from(!yamdv_platform_win::shell::set_context_menu(
+            on,
+            "Open with YAMDV",
+        )),
+        cli::Command::Run { paths, dev } => run(&paths, dev),
+    };
+    // P-55: staging folders still owned by this process are removed at exit.
+    yamdv_platform_win::known::cleanup();
+    std::process::exit(code);
+}
+
+#[cfg(windows)]
+fn run(paths: &[String], dev: cli::Dev) -> i32 {
+    #[cfg(feature = "dev-tools")]
+    if let Some(out) = &dev.render_png {
+        let Some(input) = paths.first() else {
+            return cli::EXIT_USAGE;
+        };
+        return yamdv_platform_win::devtools::render_png(
+            &yamdv_platform_win::devtools::RenderPng {
+                input: input.clone(),
+                output: out.clone(),
+                width: dev.width.unwrap_or(1000.0),
+                scale: dev.scale.unwrap_or(1.0),
+                dark: dev.dark,
+                block: dev.block,
+            },
+        );
+    }
+    yamdv_platform_win::window::run(
+        paths,
+        yamdv_platform_win::window::DevOptions {
+            autoscroll: dev.autoscroll,
+            perf_log: dev.perf_log,
+            mem_stats: dev.mem_stats,
+            script: dev.script,
+        },
+        dev.line,
+    )
+}
+
+/// YAMDV runs only on Windows; on other hosts the binary exists so the workspace builds and the
+/// pure CLI logic can be unit-tested.
+#[cfg(not(windows))]
+fn main() {
+    let _ = cli::parse(std::env::args().skip(1));
+    std::process::exit(1);
+}

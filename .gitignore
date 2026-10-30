@@ -1,0 +1,22 @@
+/target/
+**/*.rs.bk
+*.pdb
+/spikes/target/
+/fuzz/target/
+/fuzz/corpus/*/
+/fuzz/artifacts/
+*.tmp
+.DS_Store
+Thumbs.db
+
+# driver logs
+tests/driver/*.log
+/tests/driver/*.tmp.md
+/tests/driver/*.tmp.html
+/tests/driver/*.tmp.csv
+/tests/driver/*.tmp.pdf
+tests/golden/v1a/*.log
+/tests/driver/*.tmp.ico
+/tests/driver/*.tmp.png
+/tests/driver/*.tmp.txt
+tests/smoke/*.log

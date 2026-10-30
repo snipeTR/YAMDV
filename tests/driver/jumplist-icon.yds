@@ -1,0 +1,46 @@
+# 018a §2-D: jump list out of process (P-53) and the custom app icon (R-SYS-08).
+command mode light
+ui settings-set sidebar.show_history=true
+wait-idle
+ui modules-mark
+write-file jl-a.tmp.md "# A\n\nalpha\n"
+write-file jl-b.tmp.md "# B\n\nbeta\n"
+open jl-a.tmp.md
+wait-idle
+open jl-b.tmp.md
+wait-idle
+# The update runs in the host process; its builder output lists the recent files.
+ui jumplist-flush
+assert jumplist_started == 1
+assert jumplist_exit == 0
+assert jumplist_items contains jl-a.tmp.md
+assert jumplist_items contains jl-b.tmp.md
+# No shell / property-system modules were loaded into this process for it.
+assert modules_new_shell == 0
+# Clear history empties the list.
+ui settings-open privacy
+wait-idle
+ui settings-click btn.clear_history
+wait-idle
+key enter
+wait-idle
+ui jumplist-flush
+assert jumplist_exit == 0
+assert jumplist_items !contains jl-a.tmp.md
+assert jumplist_items !contains jl-b.tmp.md
+key esc
+wait-idle
+# Custom icon: a valid .ico is accepted.
+ui copy-file ../fixtures/app-16.ico jl-icon.tmp.ico
+ui path-setting general.app_icon=jl-icon.tmp.ico
+wait-idle
+assert ini.general.app_icon contains jl-icon.tmp.ico
+# A missing path and a file over 1 MB are refused; the accepted value stays.
+ui path-setting general.app_icon=jl-missing.tmp.ico
+wait-idle
+assert ini.general.app_icon contains jl-icon.tmp.ico
+ui pad-file ../fixtures/app-16.ico jl-big.tmp.ico 1100000
+ui path-setting general.app_icon=jl-big.tmp.ico
+wait-idle
+assert ini.general.app_icon contains jl-icon.tmp.ico
+assert ini.general.app_icon !contains jl-big

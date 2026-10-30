@@ -1,0 +1,46 @@
+# PERF-06 (prompt 020 §3.6): an external edit of one paragraph is diffed against the loaded text
+# and spliced in: only that block (and the one before it) is re-parsed, T6 <= 100 ms on
+# large-1mb.md and typical.md, and the scroll anchor stays on the same content.
+command mode light
+wait-idle
+ui copy-file ../fixtures/large-1mb.md lri-large.tmp.md
+open lri-large.tmp.md
+wait-idle
+wheel -3600
+wait-idle
+wheel -3600
+wait-idle
+sleep 300
+assert scroll_y > 0
+ui anchor-mark
+ui file-replace lri-large.tmp.md|It opens a file, lays out only what you can see|It opens a file and lays out only what is visible
+sleep 1500
+wait-idle
+assert reload_blocks >= 1
+assert reload_blocks <= 2
+assert reload_ms <= 100
+assert anchor_same == 1
+# A heading edit (the TOC changes): the anchor stays as well.
+ui anchor-mark
+ui file-replace lri-large.tmp.md|## 3. Section about topic 3|## 3. Section about topic three
+sleep 1500
+wait-idle
+assert reload_blocks >= 1
+assert reload_blocks <= 2
+assert reload_ms <= 100
+assert anchor_same == 1
+# typical.md
+ui copy-file ../corpus/002/typical.md lri-typical.tmp.md
+open lri-typical.tmp.md
+wait-idle
+wheel -1200
+wait-idle
+sleep 300
+ui anchor-mark
+ui file-replace lri-typical.tmp.md|a|A
+sleep 1500
+wait-idle
+assert reload_blocks >= 1
+assert reload_blocks <= 2
+assert reload_ms <= 100
+assert anchor_same == 1

@@ -1,0 +1,174 @@
+{
+ "sections": [
+  {
+   "name": "A. Pano ve seçim",
+   "ids": [
+    "copy",
+    "copy_markdown",
+    "copy_rich_html",
+    "copy_link",
+    "select_all",
+    "cut",
+    "paste",
+    "paste_plain"
+   ]
+  },
+  {
+   "name": "B. Görünüm",
+   "ids": [
+    "theme_system",
+    "theme_light",
+    "theme_dark",
+    "color_scheme",
+    "layout_settings",
+    "toggle_sidebar",
+    "toggle_single_newline_break",
+    "toggle_word_count",
+    "fullscreen",
+    "heading_jump",
+    "mind_map"
+   ]
+  },
+  {
+   "name": "C. Düzenleme kipleri",
+   "ids": [
+    "live_edit",
+    "split_edit",
+    "external_editor"
+   ]
+  },
+  {
+   "name": "D. Dışa aktarma ve yazdırma",
+   "ids": [
+    "export_pdf",
+    "export_html",
+    "print"
+   ]
+  },
+  {
+   "name": "E. Sık kullanılanlar ve dosya",
+   "ids": [
+    "toggle_favorite_off",
+    "toggle_favorite_on",
+    "open_file",
+    "reload",
+    "show_in_explorer",
+    "copy_file_path",
+    "reopen_with_encoding",
+    "document_info"
+   ]
+  },
+  {
+   "name": "F. Uygulama",
+   "ids": [
+    "settings",
+    "shortcuts_help",
+    "about"
+   ]
+  },
+  {
+   "name": "G. Biçim",
+   "ids": [
+    "bold",
+    "italic",
+    "strikethrough",
+    "highlight",
+    "inline_code",
+    "link",
+    "heading_1",
+    "heading_2",
+    "heading_3",
+    "paragraph",
+    "quote",
+    "bullet_list",
+    "numbered_list",
+    "task_list",
+    "clear_formatting"
+   ]
+  },
+  {
+   "name": "H. Ekle",
+   "ids": [
+    "insert_table",
+    "code_block",
+    "callout_note",
+    "callout_tip",
+    "callout_important",
+    "callout_warning",
+    "callout_caution",
+    "math_block",
+    "mermaid_block",
+    "horizontal_rule",
+    "image",
+    "footnote"
+   ]
+  },
+  {
+   "name": "I. Tablo",
+   "ids": [
+    "table_row_above",
+    "table_row_below",
+    "table_col_left",
+    "table_col_right",
+    "table_delete_row",
+    "table_delete_col",
+    "table_align_left",
+    "table_align_center",
+    "table_align_right",
+    "table_align_none",
+    "table_sort_asc",
+    "table_sort_desc",
+    "table_move_row_up",
+    "table_move_row_down",
+    "table_move_col_left",
+    "table_move_col_right",
+    "table_delete",
+    "table_export_csv",
+    "table_copy_csv",
+    "view_fullscreen"
+   ]
+  },
+  {
+   "name": "J. Diyagram ve resim",
+   "ids": [
+    "copy_png",
+    "copy_source",
+    "save_png"
+   ]
+  },
+  {
+   "name": "K. Ek komutlar",
+   "ids": [
+    "find",
+    "replace",
+    "undo",
+    "redo",
+    "save",
+    "nav_back",
+    "nav_forward",
+    "font_bigger",
+    "font_smaller"
+   ]
+  }
+ ],
+ "toolbar": [
+  "open_file",
+  "copy",
+  "copy_markdown",
+  "find",
+  "|",
+  "toggle_sidebar",
+  "heading_jump",
+  "mind_map",
+  "|",
+  "live_edit",
+  "split_edit",
+  "|",
+  "toggle_favorite_off",
+  "export_pdf",
+  "print",
+  "|",
+  "theme_system",
+  "settings"
+ ]
+}

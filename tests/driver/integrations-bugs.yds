@@ -1,0 +1,64 @@
+# 018a §2-D: integrations and bug regressions (encoding reopen, editor detection, BUG-01/02, CF_HTML).
+command mode light
+wait-idle
+# Encoding: a windows-1254 file that chardetng detects as windows-1252 reopens as 1254, reads
+# correctly, and saves byte-exact.
+ui copy-file ../fixtures/tr-1254.md ib-1254.tmp.md
+ui bytes-mark ../fixtures/tr-1254.md
+open ib-1254.tmp.md
+wait-idle
+assert doc_encoding == windows-1252
+assert file_same == 1
+command reopen-encoding windows-1254
+wait-idle
+assert doc_encoding == windows-1254
+assert preview contains Şu an
+key f3
+wait-idle
+key ctrl+end
+type x
+key ctrl+s
+wait-idle
+key backspace
+key ctrl+s
+wait-idle
+assert doc_encoding == windows-1254
+assert file_same == 1
+key escape
+wait-idle
+# Editor detection: a fake VS Code install under the scratch %LOCALAPPDATA%; the CreateProcessW
+# command line is captured (dry launch) and must split back into exe + --goto file:line:col.
+ui fake-editor Programs\Microsoft VS Code\Code.exe
+write-file ib-edit.tmp.md "# E\n\nline three\n"
+open ib-edit.tmp.md
+wait-idle
+ui open-editor
+wait-idle
+assert last_launch contains Microsoft VS Code\Code.exe
+assert last_launch contains --goto
+assert last_launch contains ib-edit.tmp.md:
+assert last_launch_roundtrip == 1
+# BUG-02: one-line display math with unbalanced braces is display math in the error style.
+write-file ib-math.tmp.md "# M\n\n$$\frac{a}{$$\n\nafter\n"
+open ib-math.tmp.md
+wait-idle
+assert math_display_errors == 1
+# CF_HTML offsets match the real byte offsets (non-ASCII content shifts them).
+write-file ib-cf.tmp.md "# Çay ve şeker\n\nÜç ğ ı İ ö — “quotes” 😀\n"
+open ib-cf.tmp.md
+wait-idle
+command copy-rich
+wait-idle
+assert clip_html == 1
+assert clip_html_offsets_ok == 1
+# BUG-01: Ctrl+click on x.md#frag opens a new window scrolled to the anchor.
+write-file ib-b.tmp.md "# B\n\nParagraph 0 filler text to push the anchor down.\n\nParagraph 1 filler text to push the anchor down.\n\nParagraph 2 filler text to push the anchor down.\n\nParagraph 3 filler text to push the anchor down.\n\nParagraph 4 filler text to push the anchor down.\n\nParagraph 5 filler text to push the anchor down.\n\nParagraph 6 filler text to push the anchor down.\n\nParagraph 7 filler text to push the anchor down.\n\nParagraph 8 filler text to push the anchor down.\n\nParagraph 9 filler text to push the anchor down.\n\nParagraph 10 filler text to push the anchor down.\n\nParagraph 11 filler text to push the anchor down.\n\nParagraph 12 filler text to push the anchor down.\n\nParagraph 13 filler text to push the anchor down.\n\nParagraph 14 filler text to push the anchor down.\n\nParagraph 15 filler text to push the anchor down.\n\nParagraph 16 filler text to push the anchor down.\n\nParagraph 17 filler text to push the anchor down.\n\nParagraph 18 filler text to push the anchor down.\n\nParagraph 19 filler text to push the anchor down.\n\nParagraph 20 filler text to push the anchor down.\n\nParagraph 21 filler text to push the anchor down.\n\nParagraph 22 filler text to push the anchor down.\n\nParagraph 23 filler text to push the anchor down.\n\nParagraph 24 filler text to push the anchor down.\n\nParagraph 25 filler text to push the anchor down.\n\nParagraph 26 filler text to push the anchor down.\n\nParagraph 27 filler text to push the anchor down.\n\nParagraph 28 filler text to push the anchor down.\n\nParagraph 29 filler text to push the anchor down.\n\nParagraph 30 filler text to push the anchor down.\n\nParagraph 31 filler text to push the anchor down.\n\nParagraph 32 filler text to push the anchor down.\n\nParagraph 33 filler text to push the anchor down.\n\nParagraph 34 filler text to push the anchor down.\n\nParagraph 35 filler text to push the anchor down.\n\nParagraph 36 filler text to push the anchor down.\n\nParagraph 37 filler text to push the anchor down.\n\nParagraph 38 filler text to push the anchor down.\n\nParagraph 39 filler text to push the anchor down.\n\nParagraph 40 filler text to push the anchor down.\n\nParagraph 41 filler text to push the anchor down.\n\nParagraph 42 filler text to push the anchor down.\n\nParagraph 43 filler text to push the anchor down.\n\nParagraph 44 filler text to push the anchor down.\n\nParagraph 45 filler text to push the anchor down.\n\nParagraph 46 filler text to push the anchor down.\n\nParagraph 47 filler text to push the anchor down.\n\nParagraph 48 filler text to push the anchor down.\n\nParagraph 49 filler text to push the anchor down.\n\nParagraph 50 filler text to push the anchor down.\n\nParagraph 51 filler text to push the anchor down.\n\nParagraph 52 filler text to push the anchor down.\n\nParagraph 53 filler text to push the anchor down.\n\nParagraph 54 filler text to push the anchor down.\n\nParagraph 55 filler text to push the anchor down.\n\nParagraph 56 filler text to push the anchor down.\n\nParagraph 57 filler text to push the anchor down.\n\nParagraph 58 filler text to push the anchor down.\n\nParagraph 59 filler text to push the anchor down.\n\nParagraph 60 filler text to push the anchor down.\n\nParagraph 61 filler text to push the anchor down.\n\nParagraph 62 filler text to push the anchor down.\n\nParagraph 63 filler text to push the anchor down.\n\nParagraph 64 filler text to push the anchor down.\n\nParagraph 65 filler text to push the anchor down.\n\nParagraph 66 filler text to push the anchor down.\n\nParagraph 67 filler text to push the anchor down.\n\nParagraph 68 filler text to push the anchor down.\n\nParagraph 69 filler text to push the anchor down.\n\nParagraph 70 filler text to push the anchor down.\n\nParagraph 71 filler text to push the anchor down.\n\nParagraph 72 filler text to push the anchor down.\n\nParagraph 73 filler text to push the anchor down.\n\nParagraph 74 filler text to push the anchor down.\n\nParagraph 75 filler text to push the anchor down.\n\nParagraph 76 filler text to push the anchor down.\n\nParagraph 77 filler text to push the anchor down.\n\nParagraph 78 filler text to push the anchor down.\n\nParagraph 79 filler text to push the anchor down.\n\nParagraph 80 filler text to push the anchor down.\n\nParagraph 81 filler text to push the anchor down.\n\nParagraph 82 filler text to push the anchor down.\n\nParagraph 83 filler text to push the anchor down.\n\nParagraph 84 filler text to push the anchor down.\n\nParagraph 85 filler text to push the anchor down.\n\nParagraph 86 filler text to push the anchor down.\n\nParagraph 87 filler text to push the anchor down.\n\nParagraph 88 filler text to push the anchor down.\n\nParagraph 89 filler text to push the anchor down.\n\nParagraph 90 filler text to push the anchor down.\n\nParagraph 91 filler text to push the anchor down.\n\nParagraph 92 filler text to push the anchor down.\n\nParagraph 93 filler text to push the anchor down.\n\nParagraph 94 filler text to push the anchor down.\n\nParagraph 95 filler text to push the anchor down.\n\nParagraph 96 filler text to push the anchor down.\n\nParagraph 97 filler text to push the anchor down.\n\nParagraph 98 filler text to push the anchor down.\n\nParagraph 99 filler text to push the anchor down.\n\nParagraph 100 filler text to push the anchor down.\n\nParagraph 101 filler text to push the anchor down.\n\nParagraph 102 filler text to push the anchor down.\n\nParagraph 103 filler text to push the anchor down.\n\nParagraph 104 filler text to push the anchor down.\n\nParagraph 105 filler text to push the anchor down.\n\nParagraph 106 filler text to push the anchor down.\n\nParagraph 107 filler text to push the anchor down.\n\nParagraph 108 filler text to push the anchor down.\n\nParagraph 109 filler text to push the anchor down.\n\nParagraph 110 filler text to push the anchor down.\n\nParagraph 111 filler text to push the anchor down.\n\nParagraph 112 filler text to push the anchor down.\n\nParagraph 113 filler text to push the anchor down.\n\nParagraph 114 filler text to push the anchor down.\n\nParagraph 115 filler text to push the anchor down.\n\nParagraph 116 filler text to push the anchor down.\n\nParagraph 117 filler text to push the anchor down.\n\nParagraph 118 filler text to push the anchor down.\n\nParagraph 119 filler text to push the anchor down.\n\n## Target\n\nHere.\n"
+write-file ib-a.tmp.md "# A\n\n[Go to target](ib-b.tmp.md#target)\n"
+open ib-a.tmp.md
+wait-idle
+click-link "Go to target" ctrl
+wait-idle
+sleep 1500
+assert windows == 2
+assert other_document == ib-b.tmp.md
+assert other_scroll_y > 500

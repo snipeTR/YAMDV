@@ -1,0 +1,47 @@
+# 018a §2-B: native PDF writer (ADR-0018) through the UI. The files are inspected afterwards by
+# .github/scripts/pdf-native.ps1 with `cargo xtask pdf-inspect` (pages, outline = headings, links,
+# no active content, subset fonts with ToUnicode, searchable text, white page in dark UI).
+command mode light
+wait-idle
+open ../corpus/002/typical.md
+wait-idle
+ui job-reset
+ui export-pdf-bg pn-typical.tmp.pdf
+ui job-done
+assert job_last == ok
+assert out_exists == 1
+assert worker == 0
+# Dark UI with pdf_colors=light: the page background is white (checked by pdf-inspect).
+command mode dark
+wait-idle
+ui settings-set export.pdf_colors=light
+open ../fixtures/colors.md
+wait-idle
+ui job-reset
+ui export-pdf-bg pn-colors.tmp.pdf
+ui job-done
+assert job_last == ok
+assert out_exists == 1
+# Cancel after 5 pages leaves no file and no worker; the main-process PWS is back within +0.2 MiB.
+command mode light
+open ../fixtures/large-1mb.md
+wait-idle
+# Lay the whole document out once (first open of large-1mb.md in this process) before the mark,
+# so the delta measures the cancelled job, not the first scroll-through (as in export-progress).
+key ctrl+end
+wait-idle
+key ctrl+home
+wait-idle
+sleep 1500
+ui mem-mark
+ui job-reset
+ui export-pdf-bg pn-cancel.tmp.pdf
+ui job-wait 5
+assert job == running
+ui job-cancel
+ui job-done
+assert job_last == cancelled
+assert out_exists == 0
+assert worker == 0
+sleep 4500
+assert pws_delta_kib <= 205

@@ -1,0 +1,1 @@
+<svg><use href='#g'/><path d='M1 0L10 10A5 5 0 0,  11 0z'/><text x='1'/><path d='M1 0L10 10A5 5 0 0,  11 0z'/><text x='1' y!='5'>!='5'>t</text></svg>

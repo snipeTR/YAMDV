@@ -1,0 +1,4 @@
+flowchart TD
+  start([Start]) --> input[/Read input/]
+  input --> click{Valid?}
+ cfe

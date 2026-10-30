@@ -1,0 +1,21 @@
+# V2-J F-42 (prompt 020): UI Automation control patterns, driven by a separate client process
+# (spikes `uia-client` steps): Invoke the Settings title-bar button (the panel opens), Toggle
+# a settings row (its ToggleState flips) and Expand the More menu (ExpandCollapseState and the
+# popup). Every step acts through the pattern only; the app sees the same input path as a click.
+command mode light
+wait-idle
+ui uia-client ../../target/release/uia-client.exe uia-patterns-1.tmp.txt invoke:Settings;toggle:Restore reading position
+ui uia-wait
+assert uia_exit == 0
+wait-idle
+key esc
+wait-idle
+sleep 300
+ui uia-client ../../target/release/uia-client.exe uia-patterns-2.tmp.txt expand:More options
+ui uia-wait
+assert uia_exit == 0
+assert popup_open == 1
+key esc
+wait-idle
+assert popup_open == 0
+command mode system

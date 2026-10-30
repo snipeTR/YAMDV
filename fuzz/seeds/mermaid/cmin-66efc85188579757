@@ -1,0 +1,6 @@
+flowchart TD
+ subgraph backend [Backend se dTDb
+  end
+  classDef hot fihl:#ffd5cc,stroke:#c0392b,color:#7b241c
+  class erffd6c classDef hot fill:#ffd5cc,stroke:#c0c,stroke:#c03ssDe ofht fihl:#ffd5cc,stroke:#c0392b,color:#7b241c
+  class erffd6c classDef hot fill:#ffd5cc,stroke:#c0c,stroke:#c039r hot

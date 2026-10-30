@@ -1,0 +1,24 @@
+# V2-I UI Automation (prompt 019 §4): a separate client process (spikes `uia-client`) walks the
+# tree over UIAutomationCore and reads the Document's TextPattern; exit 0 = Document with text
+# and the title-bar buttons. Pass 1 (settings panel open) loads UIAutomationCore and warms it;
+# passes 2 and 3 are the gate: PWS within +0.2 MiB of the mark after the client disconnects.
+command mode light
+wait-idle
+ui click settings
+wait-idle
+ui uia-client ../../target/release/uia-client.exe uia-tree-1.tmp.txt
+ui uia-wait
+assert uia_exit == 0
+key esc
+wait-idle
+sleep 1500
+ui mem-mark
+ui uia-client ../../target/release/uia-client.exe uia-tree-2.tmp.txt
+ui uia-wait
+assert uia_exit == 0
+ui uia-client ../../target/release/uia-client.exe uia-tree-3.tmp.txt
+ui uia-wait
+assert uia_exit == 0
+sleep 2000
+assert pws_delta_kib <= 204.8
+command mode system

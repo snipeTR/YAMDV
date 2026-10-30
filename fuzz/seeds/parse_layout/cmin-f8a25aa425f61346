@@ -1,0 +1,94 @@
+# Bozuk UTF-8
+
+Bu dosya geÃ§erli Ub
+1. c
+~~~~~~
+- item
+
+  second paragraph
+~~~~~~
+- item
+  lazy
+~~~~~~
+- ```
+  code …in ite'm
+  ```
+~~~~~~
+- > quote in item
+~~~~~~
+-
+  empty first line
+~~~~~~
+- # FR
+C
+liZZZZZZZZoÿÿÿÿÿÿ‹e
+> a
+> > b
+> > > c
+~~~~~~
+- > - > nested containers
+~~~~~~
+1. > quote
+   > in ordered
+~~~~~~
+* a
+
+  ```
+  code
+  ```
+* b
+~~~~~~
+<dÿÿÿÿÿÿÃ§erli Ub
+1. c
+~~~~~~
+- item
+
+  second paragraph
+~~~~~~
+- item
+  lazy
+~~~~~~
+- ```
+  code …in item
+  ```
+~~~~~~
+- > quote in item
+~~~~~~
+-
+  empty first line
+~~~~~~
+- # FR
+C
+liZZZZZZZZoÿÿÿÿÿÿ‹[ © task
+- [x] done
+~~~~~~
+- [X] uppe* em* and `code` and [link](/u) and ~~del~~
+~~~~~~
+**bold [linnk](/eu) bold**
+~~~~~~
+*a*b*c*
+~
+~~~~~
+foo*bar*
+~~~~~~
+*ÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿine oÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿiv>
+*not md*
+</div>
+
+*md*
+~~~~~~
+mixed *em **strong** em* and `code` and [link](/u) and ~~del~~
+~~~~~~
+**bold [linnk](/eu) bold**
+~~~~~~
+*a*b*c*
+~
+~~~~~
+foo*bar*
+~~~~~~
+***l
+***
+~
+~~~~~
+- a
+**

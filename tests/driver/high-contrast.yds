@@ -1,0 +1,43 @@
+# V2-I High Contrast (prompt 019 §4, FUT-47): `ui hc-on` simulates Windows High Contrast with the
+# system colours of "High Contrast Black" / "High Contrast White" (live WM_SETTINGCHANGE uses the
+# same path with GetSysColor). System colours only: no scheme tint, no custom colours.
+command mode light
+command scheme glacier
+wait-idle
+assert hc == 0
+ui hc-on black
+wait-idle
+assert hc == 1
+assert dark == 1
+assert pal.bg == #000000
+assert pal.text == #ffffff
+assert pal.link == #ffff00
+assert pal.accent == #1aebff
+assert pal.code_bg == #000000
+snapshot hc-black.png
+# The settings panel and its focus ring (COLOR_HIGHLIGHT, visible without keyboard use).
+ui click settings
+wait-idle
+assert settings == open
+snapshot hc-black-settings.png
+# Settings font enumeration (DirectWrite system collection) under ACG (prompt 019 §4, ADR-0001).
+ui settings-click typography.body_font
+wait-idle
+assert font_list > 5
+ui settings-close
+wait-idle
+assert settings == closed
+ui hc-on white
+wait-idle
+assert dark == 0
+assert pal.bg == #ffffff
+assert pal.text == #000000
+assert pal.link == #00009f
+assert pal.accent == #37006e
+ui hc-off
+wait-idle
+assert hc == 0
+assert pal.bg != #000000
+command scheme default
+command mode system
+wait-idle

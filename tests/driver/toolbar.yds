@@ -1,0 +1,94 @@
+# V2-J toolbar (prompt 020 §5.2 item 7): default items, Live Edit pressed, Favorite icon,
+# Settings checklist removes an item, a narrow window moves items into », icon table budgets.
+resize 1000 700
+wait-idle
+assert toolbar_shown == 1
+assert chrome_top == 64
+assert toolbar_items == open_file,live_edit,split_edit,find,heading_jump,toggle_sidebar,export_pdf,print,mind_map,toggle_favorite,theme,settings
+assert toolbar_overflow == 0
+assert toolbar_more == 0
+assert icon_table_bytes <= 61440
+assert icon_cache_bytes > 0
+assert icon_cache_bytes <= 65536
+# Live Edit toggles from the bar and its button is pressed; again turns it off.
+ui toolbar-click live_edit
+wait-idle
+assert toolbar_pressed contains live_edit
+ui toolbar-click live_edit
+wait-idle
+assert toolbar_pressed !contains live_edit
+# Favorite: the icon switches between the outline and the filled star.
+assert favorites == 0
+assert toolbar_fav_icon == toggle_favorite_off
+ui toolbar-click toggle_favorite
+wait-idle
+assert favorites == 1
+assert toolbar_fav_icon == toggle_favorite_on
+assert toolbar_pressed contains toggle_favorite
+ui toolbar-click toggle_favorite
+wait-idle
+assert favorites == 0
+assert toolbar_fav_icon == toggle_favorite_off
+# Theme cycles System → Light → Dark with the matching icon.
+assert toolbar_theme_icon == theme_system
+ui toolbar-click theme
+wait-idle
+assert toolbar_theme_icon == theme_light
+ui toolbar-click theme
+wait-idle
+assert toolbar_theme_icon == theme_dark
+command mode system
+wait-idle
+# Settings → Toolbar: switching an item off removes it from the bar.
+ui settings-open toolbar
+wait-idle
+ui settings-click tool:print
+wait-idle
+ui settings-close
+wait-idle
+assert toolbar_items == open_file,live_edit,split_edit,find,heading_jump,toggle_sidebar,export_pdf,mind_map,toggle_favorite,theme,settings
+assert toolbar_items !contains print
+# More items than fit at the minimum width (480): the last ones move into the » menu.
+ui settings-open toolbar
+wait-idle
+ui settings-click tool:copy
+wait-idle
+ui settings-click tool:reload
+wait-idle
+ui settings-click tool:export_html
+wait-idle
+ui settings-click tool:fullscreen
+wait-idle
+ui settings-click tool:about
+wait-idle
+ui settings-close
+wait-idle
+resize 480 400
+wait-idle
+assert toolbar_more == 1
+assert toolbar_overflow > 0
+assert toolbar_overflow_items contains about
+ui toolbar-click more
+wait-idle
+assert popup_open == 1
+ui popup-key esc
+wait-idle
+# Reset to default restores the default list.
+ui settings-open toolbar
+wait-idle
+ui settings-click btn.reset_toolbar
+wait-idle
+ui settings-close
+wait-idle
+resize 1000 700
+wait-idle
+assert toolbar_overflow == 0
+assert toolbar_items == open_file,live_edit,split_edit,find,heading_jump,toggle_sidebar,export_pdf,print,mind_map,toggle_favorite,theme,settings
+# Hidden with toolbar.visible = false; the content moves up.
+ui settings-set toolbar.visible=false
+wait-idle
+assert toolbar_shown == 0
+assert chrome_top == 32
+ui settings-set toolbar.visible=true
+wait-idle
+assert chrome_top == 64

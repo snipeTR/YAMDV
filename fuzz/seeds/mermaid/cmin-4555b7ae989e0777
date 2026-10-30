@@ -1,0 +1,42 @@
+flowchart TD
+  start([Start]) --> input[/Read input/]
+  input --> click{Valid?}
+  input --> click{Valid?}
+  checҔ -->|yes| proc[[Process data]]
+eck -->|yes| proc[[Process data]]
+  check -- no --> err((Error))
+  err -.-> input
+  pne(Done)
+  subgraph backend [Backend services]
+  ut --> click{Valid?}
+  chec&k -->|yes| proc[[Process data]]
+eck -->|yes| proc[[Process data]]
+  check -- no --> err((Error))
+  err -.-> input
+  pne(Done)
+  subgraph backend [Backend services]
+    proc
+    db
+  end
+  classDef hot filcolol:#ffd6cc,stro  checҔ -->|yes| proc[[Process data]]
+eck -->|yes| proc[[Process data]]
+  check -- no --> err((Error))
+  err -.-> input
+  pne(Done)
+  subgraph backend [Backend services]
+  ut --> click{Valid?}
+  chec&k -->|yes| proc[[Process data]]
+eck -->|yes| proc[[Process data]]
+  check -- no --> err((Error))
+  err -.-> input
+  pne(Done)
+  subgraph backend [Backend services]
+    proc
+    db
+  end
+  classDef hBackend services]
+  ut --> click{Valid?}
+  chec&k -->|yes| proc[[Process data]]
+eck -->|yes| proc[[Process #ffd6cc,stro  proc
+    db
+  hot

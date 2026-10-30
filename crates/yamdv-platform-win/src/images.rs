@@ -1,0 +1,1295 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+//! Images end to end (R-IMG-01…06, P-13, P-27): the Windows [`Fs`] layer behind
+//! `image::resolve_policy`, the header probe, the decode worker (E.10: 256 KiB stack,
+//! cancellable, exits after 5 s idle) with WIC decoding at display size in device pixels, and the
+//! decoded-image store with the P-13 LRU.
+
+#![allow(unsafe_code)]
+
+use std::cell::RefCell;
+use std::collections::HashMap;
+use std::sync::mpsc::{Receiver, Sender, channel};
+use std::sync::{Arc, Mutex};
+use std::time::Duration;
+
+use windows::Win32::Foundation::{CloseHandle, GENERIC_READ, HWND, LPARAM, WPARAM};
+use windows::Win32::Graphics::Imaging::{
+    CLSID_WICImagingFactory, GUID_WICPixelFormat32bppPBGRA, IWICBitmapDecoder, IWICImagingFactory,
+    WICBitmapDitherTypeNone, WICBitmapInterpolationModeHighQualityCubic,
+    WICBitmapPaletteTypeCustom, WICDecodeMetadataCacheOnDemand,
+};
+use windows::Win32::Storage::FileSystem::{
+    CreateFileW, FILE_ATTRIBUTE_REPARSE_POINT, FILE_FLAG_BACKUP_SEMANTICS,
+    FILE_FLAG_OPEN_REPARSE_POINT, FILE_SHARE_DELETE, FILE_SHARE_READ, FILE_SHARE_WRITE,
+    GetDriveTypeW, GetFileAttributesExW, GetFileExInfoStandard, OPEN_EXISTING, ReadFile,
+    WIN32_FILE_ATTRIBUTE_DATA,
+};
+use windows::Win32::System::Com::{
+    CLSCTX_INPROC_SERVER, COINIT_MULTITHREADED, CoCreateInstance, CoInitializeEx, CoUninitialize,
+};
+use windows::Win32::System::IO::DeviceIoControl;
+use windows::Win32::UI::WindowsAndMessaging::{PostMessageW, WM_APP};
+use windows::core::HSTRING;
+use yamdv_core::image::{self, DriveKind, Fs, Placeholder, Source};
+use yamdv_layout::img::{ImageHost, ImgState};
+
+pub mod gif;
+mod svg;
+pub use svg::set_text_color;
+
+/// Window message posted when a decode finished (`wParam` = generation).
+pub const WM_IMAGE_DONE: u32 = WM_APP + 0x31;
+/// Worker stack size (E.10).
+pub const WORKER_STACK: usize = 256 * 1024;
+/// Worker idle exit.
+pub const IDLE_EXIT: Duration = Duration::from_secs(5);
+const FSCTL_GET_REPARSE_POINT: u32 = 0x0009_00A8;
+const TAG_MOUNT_POINT: u32 = 0xA000_0003;
+const TAG_SYMLINK: u32 = 0xA000_000C;
+
+/// The Windows file-system layer of the S-RES-02 policy.
+#[derive(Debug, Default)]
+pub struct WinFs;
+
+fn attrs(path: &str) -> Option<WIN32_FILE_ATTRIBUTE_DATA> {
+    let mut a = WIN32_FILE_ATTRIBUTE_DATA::default();
+    // SAFETY: `a` is a valid out-buffer of the requested info level.
+    unsafe {
+        GetFileAttributesExW(
+            &HSTRING::from(path),
+            GetFileExInfoStandard,
+            (&raw mut a).cast(),
+        )
+    }
+    .ok()?;
+    Some(a)
+}
+
+fn u16_at(b: &[u8], o: usize) -> usize {
+    b.get(o..o + 2)
+        .and_then(|s| <[u8; 2]>::try_from(s).ok())
+        .map_or(0, |s| usize::from(u16::from_le_bytes(s)))
+}
+
+/// Substitute name of a symlink / mount-point reparse buffer (`""` for other tags).
+pub fn parse_reparse(b: &[u8]) -> String {
+    let tag = b
+        .get(0..4)
+        .and_then(|s| <[u8; 4]>::try_from(s).ok())
+        .map_or(0, u32::from_le_bytes);
+    let base = match tag {
+        TAG_SYMLINK => 20,
+        TAG_MOUNT_POINT => 16,
+        _ => return String::new(),
+    };
+    let (off, len) = (u16_at(b, 8), u16_at(b, 10));
+    let Some(raw) = b.get(base + off..base + off + len) else {
+        return String::new();
+    };
+    let w: Vec<u16> = raw
+        .as_chunks::<2>()
+        .0
+        .iter()
+        .map(|c| u16::from_le_bytes(*c))
+        .collect();
+    String::from_utf16_lossy(&w)
+}
+
+impl Fs for WinFs {
+    fn drive_kind(&mut self, root: &str) -> DriveKind {
+        // SAFETY: valid NUL-terminated string.
+        match unsafe { GetDriveTypeW(&HSTRING::from(root)) } {
+            4 => DriveKind::Remote,
+            2 | 3 | 5 | 6 => DriveKind::Local,
+            _ => DriveKind::Unknown,
+        }
+    }
+    fn reparse_target(&mut self, path: &str) -> Option<String> {
+        let a = attrs(path)?;
+        if a.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT.0 == 0 {
+            return None;
+        }
+        // SAFETY: opens the reparse point itself (never its target); handle closed below.
+        let h = unsafe {
+            CreateFileW(
+                &HSTRING::from(path),
+                0,
+                FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                None,
+                OPEN_EXISTING,
+                FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS,
+                None,
+            )
+        }
+        .ok()?;
+        let mut buf = vec![0u8; 16 * 1024];
+        let mut got = 0u32;
+        // SAFETY: `buf` is a writable buffer of the given size.
+        let ok = unsafe {
+            DeviceIoControl(
+                h,
+                FSCTL_GET_REPARSE_POINT,
+                None,
+                0,
+                Some(buf.as_mut_ptr().cast()),
+                u32::try_from(buf.len()).unwrap_or(0),
+                Some(&raw mut got),
+                None,
+            )
+        }
+        .is_ok();
+        // SAFETY: handle from CreateFileW.
+        let _ = unsafe { CloseHandle(h) };
+        if !ok {
+            return Some(String::new());
+        }
+        buf.truncate(got as usize);
+        let t = parse_reparse(&buf);
+        Some(t.strip_prefix("\\??\\").map_or(t.clone(), |r| {
+            if r.to_ascii_lowercase().starts_with("unc\\") {
+                t.clone()
+            } else {
+                r.to_string()
+            }
+        }))
+    }
+    fn size(&mut self, path: &str) -> Option<u64> {
+        let a = attrs(path)?;
+        if a.dwFileAttributes & 0x10 != 0 {
+            return None;
+        }
+        Some((u64::from(a.nFileSizeHigh) << 32) | u64::from(a.nFileSizeLow))
+    }
+}
+
+/// Reads at most `n` bytes from the start of a policy-checked local file.
+fn read_head(path: &str, n: usize) -> Option<Vec<u8>> {
+    // SAFETY: read-only open of an already policy-checked local path; closed below.
+    let h = unsafe {
+        CreateFileW(
+            &HSTRING::from(path),
+            GENERIC_READ.0,
+            FILE_SHARE_READ,
+            None,
+            OPEN_EXISTING,
+            Default::default(),
+            None,
+        )
+    }
+    .ok()?;
+    let mut buf = vec![0u8; n];
+    let mut got = 0u32;
+    // SAFETY: valid handle and buffer.
+    let r = unsafe { ReadFile(h, Some(&mut buf), Some(&raw mut got), None) };
+    // SAFETY: handle from CreateFileW.
+    let _ = unsafe { CloseHandle(h) };
+    r.ok()?;
+    buf.truncate(got as usize);
+    Some(buf)
+}
+
+/// Decoded premultiplied BGRA pixels at device size.
+#[derive(Debug, Clone)]
+pub struct Bitmap {
+    /// Width (device px).
+    pub w: u32,
+    /// Height.
+    pub h: u32,
+    /// `w * h * 4` bytes.
+    pub px: Vec<u8>,
+    /// SVG only: the `currentColor` it was rendered with (re-rendered when the theme changes).
+    pub svg_color: Option<u32>,
+}
+
+/// A WIC decoder for `src`.
+pub(crate) fn open_decoder(
+    f: &IWICImagingFactory,
+    src: &Source,
+) -> Result<IWICBitmapDecoder, Placeholder> {
+    // SAFETY: COM initialized on this thread; the memory stream borrows `d`, which outlives it
+    // only as long as the caller keeps `src` (the decoder is used while `src` is alive).
+    unsafe {
+        Ok(match src {
+            Source::File(p) => f
+                .CreateDecoderFromFilename(
+                    &HSTRING::from(p.as_str()),
+                    None,
+                    GENERIC_READ,
+                    WICDecodeMetadataCacheOnDemand,
+                )
+                .map_err(|_| Placeholder::Unsupported)?,
+            Source::Data(d) => {
+                let s = f.CreateStream().map_err(|_| Placeholder::Invalid)?;
+                s.InitializeFromMemory(d)
+                    .map_err(|_| Placeholder::Invalid)?;
+                f.CreateDecoderFromStream(&s, std::ptr::null(), WICDecodeMetadataCacheOnDemand)
+                    .map_err(|_| Placeholder::Unsupported)?
+            }
+        })
+    }
+}
+
+/// Size and components of a baseline/extended/progressive Huffman JPEG with 1 or 3 components
+/// (what PDF `DCTDecode` renders like WIC does); `None` for anything else.
+pub fn jpeg_info(b: &[u8]) -> Option<(u32, u32, u8)> {
+    if !b.starts_with(&[0xFF, 0xD8]) {
+        return None;
+    }
+    let be =
+        |i: usize| -> Option<u32> { Some(u32::from(*b.get(i)?) << 8 | u32::from(*b.get(i + 1)?)) };
+    let mut i = 2;
+    while i + 4 <= b.len() {
+        if b.get(i) != Some(&0xFF) {
+            return None;
+        }
+        let m = *b.get(i + 1)?;
+        if m == 0xFF {
+            i += 1;
+            continue;
+        }
+        if matches!(m, 0xD9 | 0xDA) {
+            return None;
+        }
+        if matches!(m, 0xC0..=0xCF) && !matches!(m, 0xC4 | 0xC8 | 0xCC) {
+            if !matches!(m, 0xC0..=0xC2) {
+                return None;
+            }
+            let (h, w, c) = (be(i + 5)?, be(i + 7)?, *b.get(i + 9)?);
+            return (w > 0 && h > 0 && matches!(c, 1 | 3)).then_some((w, h, c));
+        }
+        i += 2 + usize::try_from(be(i + 2)?).ok()?;
+    }
+    None
+}
+
+/// WIC decode of `src` scaled (high-quality cubic) to `w × h` device pixels.
+pub fn decode(f: &IWICImagingFactory, src: &Source, w: u32, h: u32) -> Result<Bitmap, Placeholder> {
+    let w = w.clamp(1, image::MAX_DIM);
+    let h = h.clamp(1, image::MAX_DIM);
+    if let Some(b) = svg_bytes(src)? {
+        return svg::decode(&b, w, h);
+    }
+    if let Some(b) = ico_bytes(src)? {
+        return decode_ico(f, &b, w, h);
+    }
+    // SAFETY: COM initialized on this thread; all objects released by Drop; the buffer size is
+    // `w*h*4` and the stride `w*4`.
+    unsafe {
+        let dec = open_decoder(f, src)?;
+        let frame = dec.GetFrame(0).map_err(|_| Placeholder::Unsupported)?;
+        let sc = f
+            .CreateBitmapScaler()
+            .map_err(|_| Placeholder::Unsupported)?;
+        sc.Initialize(&frame, w, h, WICBitmapInterpolationModeHighQualityCubic)
+            .map_err(|_| Placeholder::Unsupported)?;
+        let cv = f
+            .CreateFormatConverter()
+            .map_err(|_| Placeholder::Unsupported)?;
+        cv.Initialize(
+            &sc,
+            &GUID_WICPixelFormat32bppPBGRA,
+            WICBitmapDitherTypeNone,
+            None,
+            0.0,
+            WICBitmapPaletteTypeCustom,
+        )
+        .map_err(|_| Placeholder::Unsupported)?;
+        let mut px = vec![0u8; (w as usize) * (h as usize) * 4];
+        cv.CopyPixels(std::ptr::null(), w * 4, &mut px)
+            .map_err(|_| Placeholder::Unsupported)?;
+        Ok(Bitmap {
+            w,
+            h,
+            px,
+            svg_color: None,
+        })
+    }
+}
+
+/// The whole ICO file behind `src` (≤ `MAX_FILE`), or `None` when it is not an icon.
+fn ico_bytes(src: &Source) -> Result<Option<std::borrow::Cow<'_, [u8]>>, Placeholder> {
+    let is_ico = |h: &[u8]| h.starts_with(&[0, 0, 1, 0]);
+    match src {
+        Source::Data(d) => Ok(is_ico(d).then_some(std::borrow::Cow::Borrowed(d.as_slice()))),
+        Source::File(p) => {
+            if !read_head(p, 4).is_some_and(|h| is_ico(&h)) {
+                return Ok(None);
+            }
+            let max = usize::try_from(image::MAX_FILE).unwrap_or(usize::MAX);
+            let b = read_head(p, max.saturating_add(1)).ok_or(Placeholder::Missing)?;
+            if b.len() > max {
+                return Err(Placeholder::TooLarge);
+            }
+            Ok(Some(std::borrow::Cow::Owned(b)))
+        }
+    }
+}
+
+/// ADR-0022: our directory parser picks the entry; WIC decodes its PNG or BMP payload.
+fn decode_ico(f: &IWICImagingFactory, b: &[u8], w: u32, h: u32) -> Result<Bitmap, Placeholder> {
+    use yamdv_core::image::ico;
+    let dir = ico::directory(b).ok_or(Placeholder::Invalid)?;
+    let e = ico::pick(&dir, w.max(h)).ok_or(Placeholder::Invalid)?;
+    match ico::payload(b, &e).ok_or(Placeholder::Invalid)? {
+        ico::Payload::Png(p) => decode(f, &Source::Data(p), w, h),
+        ico::Payload::Bgra { px, w: bw, h: bh } => scale_bgra(
+            f,
+            &Bitmap {
+                w: bw,
+                h: bh,
+                px,
+                svg_color: None,
+            },
+            w,
+            h,
+        ),
+        ico::Payload::Bmp {
+            file,
+            mask,
+            w: bw,
+            h: bh,
+        } => match mask {
+            None => decode(f, &Source::Data(file), w, h),
+            Some(m) => {
+                // Mask at the entry's own size, then scale.
+                let mut full = decode(f, &Source::Data(file), bw, bh)?;
+                ico::apply_mask(&mut full.px, &m, bw, bh);
+                if (bw, bh) == (w, h) {
+                    return Ok(full);
+                }
+                scale_bgra(f, &full, w, h)
+            }
+        },
+    }
+}
+
+/// High-quality scale of premultiplied BGRA pixels.
+fn scale_bgra(f: &IWICImagingFactory, b: &Bitmap, w: u32, h: u32) -> Result<Bitmap, Placeholder> {
+    // SAFETY: COM initialized on this thread; buffers sized `w*h*4`, stride `w*4`.
+    unsafe {
+        let src = f
+            .CreateBitmapFromMemory(b.w, b.h, &GUID_WICPixelFormat32bppPBGRA, b.w * 4, &b.px)
+            .map_err(|_| Placeholder::Unsupported)?;
+        let sc = f
+            .CreateBitmapScaler()
+            .map_err(|_| Placeholder::Unsupported)?;
+        sc.Initialize(&src, w, h, WICBitmapInterpolationModeHighQualityCubic)
+            .map_err(|_| Placeholder::Unsupported)?;
+        let mut px = vec![0u8; (w as usize) * (h as usize) * 4];
+        sc.CopyPixels(std::ptr::null(), w * 4, &mut px)
+            .map_err(|_| Placeholder::Unsupported)?;
+        Ok(Bitmap {
+            w,
+            h,
+            px,
+            svg_color: None,
+        })
+    }
+}
+
+/// The whole SVG document behind `src` (≤ 10 MB, S-RES-07), or `None` when it is not SVG.
+fn svg_bytes(src: &Source) -> Result<Option<std::borrow::Cow<'_, [u8]>>, Placeholder> {
+    match src {
+        Source::Data(d) => Ok(svg::is_svg(d).then_some(std::borrow::Cow::Borrowed(d.as_slice()))),
+        Source::File(p) => {
+            if !read_head(p, 512).is_some_and(|h| svg::is_svg(&h)) {
+                return Ok(None);
+            }
+            let b = read_head(p, yamdv_svg::xml::MAX_INPUT + 1).ok_or(Placeholder::Missing)?;
+            if b.len() > yamdv_svg::xml::MAX_INPUT {
+                return Err(Placeholder::TooLarge);
+            }
+            Ok(Some(std::borrow::Cow::Owned(b)))
+        }
+    }
+}
+
+/// Creates a WIC factory on the current (COM-initialized) thread.
+pub fn factory() -> Option<IWICImagingFactory> {
+    // SAFETY: plain COM activation.
+    unsafe { CoCreateInstance(&CLSID_WICImagingFactory, None, CLSCTX_INPROC_SERVER) }.ok()
+}
+
+enum Work {
+    /// Policy + header probe of a source as written, relative to the document.
+    Probe { doc: String },
+    /// Decode at `w × h` device px.
+    Decode { src: Source, w: u32, h: u32 },
+    /// F-36: the next due frame of an animated GIF at `w × h` (opened on first use; `resume`
+    /// restarts the current frame's delay after a pause instead of advancing).
+    Gif {
+        src: Source,
+        w: u32,
+        h: u32,
+        now: u64,
+        resume: bool,
+    },
+    /// Drops every playing GIF of the worker (animation turned off).
+    GifClear,
+}
+
+/// A GIF frame finished on the worker (F-36).
+struct GifFrame {
+    w: u32,
+    h: u32,
+    /// The new picture; `None` when it did not change.
+    out: Option<Bitmap>,
+    due: u64,
+    frames: usize,
+    /// Bytes the worker holds for it (canvas + saved region + display frame).
+    held: usize,
+}
+
+/// The UI side of a playing GIF: the last finished frame and the frame clock (F-36: frames are
+/// decoded and composited on the image worker; the UI thread only blits).
+#[derive(Debug)]
+pub struct GifView {
+    /// The current frame at display size.
+    pub out: Bitmap,
+    due: u64,
+    frames: usize,
+    held: usize,
+    /// A frame job is in flight.
+    busy: bool,
+    /// Became visible again: the next job resumes instead of advancing.
+    resume: bool,
+}
+
+/// Animated GIFs owned by one decode thread (the worker, or the UI thread of a synchronous
+/// store), keyed by image source.
+type Gifs = HashMap<Box<str>, gif::Anim>;
+
+fn gif_job(
+    f: &IWICImagingFactory,
+    gifs: &mut Gifs,
+    key: &str,
+    (src, w, h, now, resume): (&Source, u32, u32, u64, bool),
+) -> Res {
+    let fresh = !gifs.get(key).is_some_and(|a| a.out.w == w && a.out.h == h);
+    if fresh {
+        match gif::Anim::open(f, src, w, h, now) {
+            Some(a) => {
+                gifs.insert(key.into(), a);
+            }
+            None => {
+                gifs.remove(key);
+                return Res::Gif(None);
+            }
+        }
+    }
+    let Some(a) = gifs.get_mut(key) else {
+        return Res::Gif(None);
+    };
+    let changed = if fresh {
+        true
+    } else if resume {
+        a.resume(now);
+        false
+    } else {
+        a.tick(f, now)
+    };
+    Res::Gif(Some(GifFrame {
+        w,
+        h,
+        out: changed.then(|| a.out.clone()),
+        due: a.player.due,
+        frames: a.player.frames,
+        held: a.bytes(),
+    }))
+}
+
+struct Job {
+    key: Box<str>,
+    work: Work,
+    generation: u64,
+}
+
+enum Res {
+    Probed(ImgState, Option<Source>),
+    Decoded(u32, u32, Result<Bitmap, Placeholder>),
+    /// `None`: not an animated GIF.
+    Gif(Option<GifFrame>),
+}
+
+type Done = (Box<str>, u64, Res);
+
+/// Policy decision first, then (only for allowed local/data sources) the header probe.
+fn probe_job(key: &str, doc: &str) -> Res {
+    match image::resolve_policy(key, doc, &mut WinFs) {
+        Err(p) => Res::Probed(ImgState::Fail(p), None),
+        Ok(s) => Res::Probed(Store::probe_source(&s), Some(s)),
+    }
+}
+
+fn run_job(f: &IWICImagingFactory, gifs: &mut Gifs, j: &Job) -> Res {
+    match &j.work {
+        Work::Probe { doc } => probe_job(&j.key, doc),
+        Work::Decode { src, w, h } => Res::Decoded(*w, *h, decode(f, src, *w, *h)),
+        Work::Gif {
+            src,
+            w,
+            h,
+            now,
+            resume,
+        } => gif_job(f, gifs, &j.key, (src, *w, *h, *now, *resume)),
+        Work::GifClear => {
+            gifs.clear();
+            Res::Gif(None)
+        }
+    }
+}
+
+/// F-41 (prompt 020): M1 was bimodal (+0.7 MiB in about half the runs, phase-v2i and HEAD
+/// alike). The diagnostic run showed the Rust heap identical in low and high runs, and the extra
+/// commit as one more image-sized (~691 KB) block of private memory, fixed from decode time on.
+/// Image-free documents (M0, M2, M3) were not bimodal. So once per drained decode batch the
+/// free process-heap blocks left by the decode (WIC scaler / decoder scratch) are coalesced and
+/// decommitted, and the steady state no longer depends on how the batch met the paints. This
+/// is not a working-set trim (D.4 rule 10): live memory stays resident; only free blocks go back.
+fn release_decode_scratch() {
+    use windows::Win32::System::Memory::{GetProcessHeap, HEAP_FLAGS, HeapCompact};
+    // SAFETY: the process heap handle; HeapCompact only coalesces and decommits free blocks.
+    unsafe {
+        if let Ok(h) = GetProcessHeap() {
+            let _ = HeapCompact(h, HEAP_FLAGS(0));
+        }
+    }
+}
+
+/// Decode worker handle (E.10).
+struct Worker {
+    tx: Sender<Job>,
+}
+
+fn spawn(hwnd: isize, done: Arc<Mutex<Vec<Done>>>) -> Option<Worker> {
+    let (tx, rx): (Sender<Job>, Receiver<Job>) = channel();
+    std::thread::Builder::new()
+        .name("yamdv-image".into())
+        .stack_size(WORKER_STACK)
+        .spawn(move || {
+            // SAFETY: COM for this thread only, uninitialized on exit.
+            let _ = unsafe { CoInitializeEx(None, COINIT_MULTITHREADED) };
+            if let Some(f) = factory() {
+                let mut gifs = Gifs::new();
+                // F-41: a job taken early to see whether the queue drained, and whether this
+                // batch decoded anything.
+                let mut next: Option<Job> = None;
+                let mut decoded = false;
+                // A playing GIF keeps the worker alive (its frames are composited here); it
+                // exits with the store (channel closed) or after idling without one.
+                while let Ok(j) = match next.take() {
+                    Some(j) => Some(j),
+                    None if gifs.is_empty() => rx.recv_timeout(IDLE_EXIT).ok(),
+                    None => rx.recv().ok(),
+                }
+                .ok_or(())
+                {
+                    if matches!(j.work, Work::GifClear) {
+                        gifs.clear();
+                        continue;
+                    }
+                    decoded |= matches!(j.work, Work::Decode { .. });
+                    {
+                        {
+                            let r = run_job(&f, &mut gifs, &j);
+                            if let Ok(mut d) = done.lock() {
+                                d.push((j.key, j.generation, r));
+                            }
+                            // SAFETY: posting to a window handle owned by the UI thread.
+                            let _ = unsafe {
+                                PostMessageW(
+                                    Some(HWND(hwnd as *mut _)),
+                                    WM_IMAGE_DONE,
+                                    WPARAM(usize::try_from(j.generation).unwrap_or(0)),
+                                    LPARAM(0),
+                                )
+                            };
+                        }
+                    }
+                    next = rx.try_recv().ok();
+                    if next.is_none() && std::mem::take(&mut decoded) {
+                        release_decode_scratch();
+                    }
+                }
+            }
+            // SAFETY: balances CoInitializeEx above.
+            unsafe { CoUninitialize() };
+        })
+        .ok()?;
+    Some(Worker { tx })
+}
+
+#[derive(Debug)]
+struct Entry {
+    state: ImgState,
+    src: Option<Source>,
+    bmp: Option<Bitmap>,
+    /// The previously decoded size (one image shown at two sizes must not ping-pong decodes).
+    alt: Option<Bitmap>,
+    pending: Option<(u32, u32)>,
+    /// `Some(true)`: an animated GIF candidate (checked once from the header).
+    gif: Option<bool>,
+    anim: Option<Box<GifView>>,
+    /// The display size of a GIF frame job in flight to open the animation.
+    gif_pending: Option<(u32, u32)>,
+}
+
+/// Per-document image store: policy, probe, decoded pixels and the P-13 LRU.
+pub struct Store {
+    doc_path: String,
+    map: RefCell<HashMap<Box<str>, Entry>>,
+    lru: RefCell<image::Lru>,
+    ids: RefCell<HashMap<Box<str>, u64>>,
+    /// Images drawn in the current frame (visible ± 1 screen keep their pixels).
+    pinned: RefCell<Vec<Box<str>>>,
+    hwnd: isize,
+    worker: RefCell<Option<Worker>>,
+    done: Arc<Mutex<Vec<Done>>>,
+    generation: u64,
+    /// Synchronous decode (`--render-png`, tests): no worker.
+    sync: Option<IWICImagingFactory>,
+    /// `reading.animate_gifs` (and no reduced motion).
+    animate: std::cell::Cell<bool>,
+    /// GIFs of a synchronous store (decoded on the calling thread; no worker).
+    sync_gifs: RefCell<Gifs>,
+    /// Animated GIFs inside the viewport this frame (they play).
+    playing: RefCell<Vec<Box<str>>>,
+}
+
+impl std::fmt::Debug for Store {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Store")
+            .field("doc", &self.doc_path)
+            .finish()
+    }
+}
+
+impl Store {
+    /// Store for the document at `doc_path`; decodes post [`WM_IMAGE_DONE`] to `hwnd`.
+    pub fn new(doc_path: &str, hwnd: isize) -> Self {
+        static GEN: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(1);
+        let generation = GEN.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+        Self {
+            doc_path: doc_path.to_string(),
+            map: RefCell::default(),
+            lru: RefCell::default(),
+            ids: RefCell::default(),
+            pinned: RefCell::default(),
+            hwnd,
+            worker: RefCell::new(None),
+            done: Arc::default(),
+            generation,
+            sync: None,
+            animate: std::cell::Cell::new(false),
+            sync_gifs: RefCell::default(),
+            playing: RefCell::default(),
+        }
+    }
+    /// Store that decodes on the calling thread (COM must be initialized).
+    pub fn synchronous(doc_path: &str) -> Self {
+        let mut s = Self::new(doc_path, 0);
+        s.sync = factory();
+        s
+    }
+
+    /// Bytes of decoded pixels held (visible + LRU).
+    pub fn decoded_bytes(&self) -> usize {
+        self.map
+            .borrow()
+            .values()
+            .map(|e| {
+                e.bmp.as_ref().map_or(0, |b| b.px.len())
+                    + e.alt.as_ref().map_or(0, |b| b.px.len())
+                    + e.anim.as_ref().map_or(0, |a| a.held.max(a.out.px.len()))
+            })
+            .sum()
+    }
+    /// Bytes in the LRU part.
+    pub fn lru_bytes(&self) -> usize {
+        self.lru.borrow().bytes()
+    }
+
+    fn id(&self, key: &str) -> u64 {
+        let mut ids = self.ids.borrow_mut();
+        let n = ids.len() as u64;
+        *ids.entry(key.into()).or_insert(n)
+    }
+
+    /// Starts a frame: forgets the pinned set.
+    pub fn begin_frame(&self) {
+        self.pinned.borrow_mut().clear();
+    }
+
+    /// Keeps `key` decoded this frame (visible ± 1 screen).
+    pub fn pin(&self, key: &str) {
+        self.pinned.borrow_mut().push(key.into());
+    }
+
+    /// Ends a frame: every decoded image not drawn in it moves into the LRU; over-budget
+    /// entries are evicted (re-decoded on demand).
+    pub fn end_frame(&self) {
+        let pinned = self.pinned.borrow();
+        let mut map = self.map.borrow_mut();
+        let keys: Vec<Box<str>> = map.keys().cloned().collect();
+        for k in keys {
+            let id = self.id(&k);
+            if !pinned.contains(&k)
+                && let Some(e) = map.get_mut(&k)
+            {
+                e.anim = None;
+            }
+            let Some(e) = map.get(&k) else { continue };
+            let Some(b) = &e.bmp else { continue };
+            if pinned.contains(&k) {
+                self.lru.borrow_mut().remove(id);
+                continue;
+            }
+            let size = b.px.len() + e.alt.as_ref().map_or(0, |a| a.px.len());
+            let evict = self.lru.borrow_mut().touch(id, size, image::LRU_BYTES);
+            for v in evict {
+                if let Some((vk, _)) = self.ids.borrow().iter().find(|(_, x)| **x == v)
+                    && let Some(e) = map.get_mut(vk)
+                {
+                    e.bmp = None;
+                    e.alt = None;
+                }
+            }
+        }
+    }
+
+    /// Resolved source and intrinsic size of a probed image (B.11 viewer decodes its own copy).
+    pub fn source(&self, key: &str) -> Option<(Source, u32, u32)> {
+        let map = self.map.borrow();
+        let e = map.get(key)?;
+        match (&e.state, &e.src) {
+            (ImgState::Ready { w, h }, Some(s)) => Some((s.clone(), *w, *h)),
+            _ => None,
+        }
+    }
+
+    /// The bytes of a probed JPEG source with its size and component count (1 or 3), for the
+    /// PDF writer's `DCTDecode` pass-through (ADR-0023); `None` for anything else.
+    pub fn jpeg(&self, key: &str) -> Option<(Vec<u8>, u32, u32, u8)> {
+        let (src, _, _) = self.source(key)?;
+        let max = usize::try_from(image::MAX_FILE).unwrap_or(usize::MAX);
+        let bytes = match src {
+            Source::Data(d) => d,
+            Source::File(p) => {
+                if !read_head(&p, 3).is_some_and(|h| h.starts_with(&[0xFF, 0xD8, 0xFF])) {
+                    return None;
+                }
+                read_head(&p, max.saturating_add(1))?
+            }
+        };
+        if bytes.len() > max {
+            return None;
+        }
+        let (w, h, c) = jpeg_info(&bytes)?;
+        Some((bytes, w, h, c))
+    }
+
+    /// Pixels of `key` at `w × h` device px, if decoded; otherwise queues a decode.
+    pub fn pixels(&self, key: &str, w: u32, h: u32) -> Option<std::cell::Ref<'_, Bitmap>> {
+        self.pinned.borrow_mut().push(key.into());
+        if self.animate.get() && self.anim_at(key, w, h) {
+            let map = self.map.borrow();
+            return std::cell::Ref::filter_map(map, |m| {
+                m.get(key).and_then(|e| e.anim.as_ref()).map(|a| &a.out)
+            })
+            .ok();
+        }
+        let need = {
+            let mut map = self.map.borrow_mut();
+            let e = map.get_mut(key)?;
+            if !matches!(e.state, ImgState::Ready { .. }) {
+                return None;
+            }
+            let fits = |b: &Bitmap| {
+                b.w == w && b.h == h && b.svg_color.is_none_or(|c| c == svg::text_color())
+            };
+            let ok = e.bmp.as_ref().is_some_and(fits) || e.alt.as_ref().is_some_and(fits);
+            if !ok && e.pending != Some((w, h)) {
+                e.pending = Some((w, h));
+                e.src.clone()
+            } else {
+                None
+            }
+        };
+        if let Some(src) = need {
+            let j = Job {
+                key: key.into(),
+                work: Work::Decode { src, w, h },
+                generation: self.generation,
+            };
+            if let Some(f) = &self.sync {
+                let r = run_job(f, &mut self.sync_gifs.borrow_mut(), &j);
+                self.apply(key, r);
+            } else {
+                self.queue(j);
+            }
+        }
+        let map = self.map.borrow();
+        std::cell::Ref::filter_map(map, |m| {
+            m.get(key).and_then(|e| {
+                e.bmp
+                    .as_ref()
+                    .filter(|b| b.w == w && b.h == h)
+                    .or_else(|| e.alt.as_ref().filter(|b| b.w == w && b.h == h))
+            })
+        })
+        .ok()
+    }
+
+    /// Whether `key` plays as a GIF at `w × h`; otherwise queues opening it on the worker
+    /// (F-36) and the still image shows until the first frame arrives.
+    fn anim_at(&self, key: &str, w: u32, h: u32) -> bool {
+        let job = {
+            let mut map = self.map.borrow_mut();
+            let Some(e) = map.get_mut(key) else {
+                return false;
+            };
+            if !matches!(e.state, ImgState::Ready { .. }) || e.gif == Some(false) {
+                return false;
+            }
+            if e.anim
+                .as_ref()
+                .is_some_and(|a| a.out.w == w && a.out.h == h)
+            {
+                return true;
+            }
+            let Some(src) = e.src.as_ref() else {
+                return false;
+            };
+            if e.gif.is_none() {
+                let head = match src {
+                    Source::Data(d) => d.get(..6).map(<[u8]>::to_vec),
+                    Source::File(p) => read_head(p, 6),
+                };
+                e.gif = Some(head.is_some_and(|h| h.starts_with(b"GIF8")));
+            }
+            if e.gif != Some(true) || e.gif_pending == Some((w, h)) {
+                return false;
+            }
+            e.gif_pending = Some((w, h));
+            Job {
+                key: key.into(),
+                work: Work::Gif {
+                    src: src.clone(),
+                    w,
+                    h,
+                    now: gif::now_ms(),
+                    resume: false,
+                },
+                generation: self.generation,
+            }
+        };
+        self.run(key, job);
+        self.map
+            .borrow()
+            .get(key)
+            .and_then(|e| e.anim.as_ref())
+            .is_some_and(|a| a.out.w == w && a.out.h == h)
+    }
+
+    /// Runs `j` now (synchronous store) or queues it on the worker.
+    fn run(&self, key: &str, j: Job) -> bool {
+        match &self.sync {
+            Some(f) => {
+                let r = run_job(f, &mut self.sync_gifs.borrow_mut(), &j);
+                self.apply(key, r);
+                true
+            }
+            None => {
+                self.queue(j);
+                false
+            }
+        }
+    }
+
+    /// `reading.animate_gifs` without reduced motion; off drops every animation (first frames show).
+    pub fn set_animate(&self, on: bool) {
+        if self.animate.replace(on) && !on {
+            for e in self.map.borrow_mut().values_mut() {
+                e.anim = None;
+                e.gif_pending = None;
+            }
+            self.sync_gifs.borrow_mut().clear();
+            if self.worker.borrow().is_some() {
+                self.queue(Job {
+                    key: "".into(),
+                    work: Work::GifClear,
+                    generation: self.generation,
+                });
+            }
+        }
+    }
+
+    /// The images inside the viewport this frame; their animations play.
+    pub fn set_playing(&self, keys: Vec<Box<str>>) {
+        let now = gif::now_ms();
+        let mut map = self.map.borrow_mut();
+        let old = self.playing.borrow();
+        for k in &keys {
+            if !old.contains(k)
+                && let Some(a) = map.get_mut(k).and_then(|e| e.anim.as_mut())
+            {
+                a.resume = true;
+                a.due = a.due.min(now);
+            }
+        }
+        drop(old);
+        *self.playing.borrow_mut() = keys;
+    }
+
+    /// Driver: images with decoded pixels, and the sorted placeholder messages of failures.
+    pub fn summary(&self) -> (usize, String) {
+        let map = self.map.borrow();
+        let ok = map
+            .values()
+            .filter(|e| e.bmp.is_some() || e.anim.is_some())
+            .count();
+        let mut fails: Vec<&str> = map
+            .values()
+            .filter_map(|e| match &e.state {
+                ImgState::Fail(p) => Some(p.message()),
+                _ => None,
+            })
+            .collect();
+        fails.sort_unstable();
+        (ok, fails.join("|"))
+    }
+
+    /// Visible animations that play (driver `gif_playing`).
+    pub fn anims_playing(&self) -> usize {
+        let map = self.map.borrow();
+        self.playing
+            .borrow()
+            .iter()
+            .filter(|k| map.get(*k).is_some_and(|e| e.anim.is_some()))
+            .count()
+    }
+
+    /// When the next visible frame is due (ms clock), if any GIF plays.
+    pub fn anim_due(&self) -> Option<u64> {
+        let map = self.map.borrow();
+        self.playing
+            .borrow()
+            .iter()
+            .filter_map(|k| map.get(k)?.anim.as_ref())
+            .filter(|a| a.frames > 1 && !a.busy)
+            .map(|a| a.due)
+            .min()
+    }
+
+    /// Asks for the next frame of every visible animation that is due (F-36: composited on
+    /// the worker, which posts [`WM_IMAGE_DONE`]); true when a frame changed already
+    /// (synchronous store).
+    pub fn tick_anims(&self, now: u64) -> bool {
+        let jobs: Vec<(Box<str>, Job)> = {
+            let mut map = self.map.borrow_mut();
+            self.playing
+                .borrow()
+                .iter()
+                .filter_map(|k| {
+                    let e = map.get_mut(k)?;
+                    let src = e.src.clone()?;
+                    let a = e.anim.as_mut()?;
+                    if a.busy || (a.due > now && !a.resume) {
+                        return None;
+                    }
+                    a.busy = true;
+                    let resume = std::mem::take(&mut a.resume);
+                    let (w, h) = (a.out.w, a.out.h);
+                    Some((
+                        k.clone(),
+                        Job {
+                            key: k.clone(),
+                            work: Work::Gif {
+                                src,
+                                w,
+                                h,
+                                now,
+                                resume,
+                            },
+                            generation: self.generation,
+                        },
+                    ))
+                })
+                .collect()
+        };
+        let mut any = false;
+        for (k, j) in jobs {
+            any |= self.run(&k, j);
+        }
+        any
+    }
+
+    fn queue(&self, j: Job) {
+        let mut w = self.worker.borrow_mut();
+        let j = match w.as_ref() {
+            Some(x) => match x.tx.send(j) {
+                Ok(()) => return,
+                Err(e) => e.0,
+            },
+            None => j,
+        };
+        // Worker exited after idling (or never started): start a new one.
+        *w = spawn(self.hwnd, Arc::clone(&self.done));
+        if let Some(x) = w.as_ref() {
+            let _ = x.tx.send(j);
+        }
+    }
+
+    /// Applies a worker result; returns whether the layout changes.
+    fn apply(&self, key: &str, r: Res) -> bool {
+        let mut map = self.map.borrow_mut();
+        let Some(e) = map.get_mut(key) else {
+            return false;
+        };
+        let (w, h, r) = match r {
+            Res::Probed(st, src) => {
+                let changed = st != e.state;
+                e.state = st;
+                e.src = src;
+                return changed;
+            }
+            Res::Decoded(w, h, r) => (w, h, r),
+            Res::Gif(None) => {
+                e.gif = Some(false);
+                e.anim = None;
+                e.gif_pending = None;
+                return false;
+            }
+            Res::Gif(Some(fr)) => {
+                if e.gif_pending == Some((fr.w, fr.h)) {
+                    e.gif_pending = None;
+                }
+                if !self.animate.get() {
+                    return false;
+                }
+                match e
+                    .anim
+                    .as_mut()
+                    .filter(|a| a.out.w == fr.w && a.out.h == fr.h)
+                {
+                    Some(a) => {
+                        if let Some(o) = fr.out {
+                            a.out = o;
+                        }
+                        (a.due, a.frames, a.held, a.busy) = (fr.due, fr.frames, fr.held, false);
+                    }
+                    None => {
+                        if let Some(out) = fr.out {
+                            e.anim = Some(Box::new(GifView {
+                                out,
+                                due: fr.due,
+                                frames: fr.frames,
+                                held: fr.held,
+                                busy: false,
+                                resume: false,
+                            }));
+                        }
+                    }
+                }
+                return false;
+            }
+        };
+        if e.pending == Some((w, h)) {
+            e.pending = None;
+        }
+        match r {
+            Ok(b) => {
+                if e.bmp.as_ref().is_some_and(|o| o.w != b.w || o.h != b.h) {
+                    e.alt = e.bmp.take();
+                }
+                e.bmp = Some(b);
+                false
+            }
+            Err(p) => {
+                e.state = ImgState::Fail(p);
+                e.bmp = None;
+                e.alt = None;
+                true
+            }
+        }
+    }
+
+    /// Collects finished decodes; returns (any finished, any layout change).
+    pub fn collect(&self) -> (bool, bool) {
+        let done: Vec<Done> = self
+            .done
+            .lock()
+            .map(|mut d| std::mem::take(&mut *d))
+            .unwrap_or_default();
+        let mut relayout = false;
+        let any = !done.is_empty();
+        for (k, generation, r) in done {
+            if generation == self.generation {
+                relayout |= self.apply(&k, r);
+            }
+        }
+        (any, relayout)
+    }
+
+    /// SVG: the intrinsic size from the parsed document, scaled into `MAX_DIM`.
+    fn probe_svg(src: &Source) -> ImgState {
+        let bytes = match svg_bytes(src) {
+            Ok(Some(b)) => b,
+            Ok(None) => return ImgState::Fail(Placeholder::Invalid),
+            Err(p) => return ImgState::Fail(p),
+        };
+        match svg::size(&bytes) {
+            Err(p) => ImgState::Fail(p),
+            Ok((w, h)) => {
+                let k = f64::from(image::MAX_DIM) / f64::from(w.max(h));
+                if k < 1.0 {
+                    #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+                    let f = |v: u32| ((f64::from(v) * k).round() as u32).max(1);
+                    ImgState::Ready { w: f(w), h: f(h) }
+                } else {
+                    ImgState::Ready { w, h }
+                }
+            }
+        }
+    }
+
+    pub(crate) fn probe_source(src: &Source) -> ImgState {
+        let head = match src {
+            Source::Data(d) => Some(d.get(..d.len().min(65_536)).unwrap_or(&[]).to_vec()),
+            Source::File(p) => read_head(p, 65_536),
+        };
+        let Some(head) = head else {
+            return ImgState::Fail(Placeholder::Missing);
+        };
+        match image::probe(&head) {
+            None => ImgState::Fail(Placeholder::Unsupported),
+            Some(p) if p.format == image::Format::Svg => Self::probe_svg(src),
+            // ADR-0022: no WebP decoder under ACG.
+            Some(p) if p.format == image::Format::Webp => ImgState::Fail(Placeholder::NoCodec),
+            Some(p) if !image::within_limits(&p) => ImgState::Fail(Placeholder::TooLarge),
+            Some(p) if p.w == 0 || p.h == 0 => ImgState::Pending,
+            Some(p) => ImgState::Ready { w: p.w, h: p.h },
+        }
+    }
+}
+
+impl ImageHost for Store {
+    fn state(&self, src: &str) -> ImgState {
+        if let Some(e) = self.map.borrow().get(src) {
+            return e.state.clone();
+        }
+        // Lexical refusals need no I/O: decided here (no layout jump for remote badges etc.).
+        if let Err(p) = image::resolve(src, &self.doc_path) {
+            let st = ImgState::Fail(p);
+            self.map.borrow_mut().insert(
+                src.into(),
+                Entry {
+                    state: st.clone(),
+                    src: None,
+                    bmp: None,
+                    alt: None,
+                    pending: None,
+                    gif: None,
+                    anim: None,
+                    gif_pending: None,
+                },
+            );
+            return st;
+        }
+        self.map.borrow_mut().insert(
+            src.into(),
+            Entry {
+                state: ImgState::Pending,
+                src: None,
+                bmp: None,
+                alt: None,
+                pending: None,
+                gif: None,
+                anim: None,
+                gif_pending: None,
+            },
+        );
+        // File-system policy checks and the header probe run on the worker (E.10); the
+        // estimate is replaced with scroll anchoring when the result arrives.
+        let j = Job {
+            key: src.into(),
+            work: Work::Probe {
+                doc: self.doc_path.clone(),
+            },
+            generation: self.generation,
+        };
+        if let Some(f) = &self.sync {
+            let r = run_job(f, &mut self.sync_gifs.borrow_mut(), &j);
+            self.apply(src, r);
+            return self
+                .map
+                .borrow()
+                .get(src)
+                .map_or(ImgState::Pending, |e| e.state.clone());
+        }
+        self.queue(j);
+        ImgState::Pending
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn reparse_symlink_and_junction() {
+        let name: Vec<u8> = "\\??\\UNC\\evil\\s"
+            .encode_utf16()
+            .flat_map(u16::to_le_bytes)
+            .collect();
+        let mut b = TAG_SYMLINK.to_le_bytes().to_vec();
+        b.extend([0, 0, 0, 0]);
+        b.extend(0u16.to_le_bytes());
+        b.extend(u16::try_from(name.len()).unwrap_or(0).to_le_bytes());
+        b.extend([0; 8]);
+        b.extend(&name);
+        assert_eq!(parse_reparse(&b), "\\??\\UNC\\evil\\s");
+        let mut j = TAG_MOUNT_POINT.to_le_bytes().to_vec();
+        j.extend([0, 0, 0, 0, 0, 0]);
+        j.extend(u16::try_from(name.len()).unwrap_or(0).to_le_bytes());
+        j.extend([0; 4]);
+        j.extend(&name);
+        assert_eq!(parse_reparse(&j), "\\??\\UNC\\evil\\s");
+        assert_eq!(parse_reparse(&[1, 0, 0, 0]), "");
+    }
+
+    /// Windows twin of the recording-mock test: blocked forms are refused by the lexical
+    /// policy before `WinFs` is ever consulted.
+    #[test]
+    fn s_res_02_blocked_before_fs_on_windows() {
+        for s in [
+            "\\\\server\\share\\a.png",
+            "\\\\?\\C:\\a.png",
+            "a.png:Zone.Identifier",
+            "https://x/a.png",
+            "CON",
+        ] {
+            assert!(image::resolve(s, "C:\\d\\x.md").is_err(), "{s}");
+            assert!(
+                image::resolve_policy(s, "C:\\d\\x.md", &mut WinFs).is_err(),
+                "{s}"
+            );
+        }
+    }
+
+    #[test]
+    fn decodes_png_data_uri_at_display_size() {
+        // SAFETY: test thread COM init.
+        let _ = unsafe { CoInitializeEx(None, COINIT_MULTITHREADED) };
+        let png = image::base64("iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFklEQVR4nGP8z8Dwn4GBgYGJAQoAAAwRAQQ+ohzBAAAAAElFTkSuQmCC").unwrap_or_default();
+        let st = Store::synchronous("C:\\d\\x.md");
+        let src = format!(
+            "data:image/png;base64,{}",
+            "iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFklEQVR4nGP8z8Dwn4GBgYGJAQoAAAwRAQQ+ohzBAAAAAElFTkSuQmCC"
+        );
+        assert!(!png.is_empty());
+        assert_eq!(st.state(&src), ImgState::Ready { w: 2, h: 2 });
+        let b = st.pixels(&src, 8, 8).map(|b| b.px.len());
+        assert_eq!(b, Some(256));
+    }
+}

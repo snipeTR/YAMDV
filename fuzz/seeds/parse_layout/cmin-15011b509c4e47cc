@@ -1,0 +1,280 @@
+# Own2CommonMark/GFM test vectors (original). One vector per block separated by a line "~~~~~~".
+-|
+|`x\|y`|
+~~~~~~
+para before
+|a|
+|-|
+~~~~~~
+text[^1]
+
+[^1]: footnote
+~~~~~~
+[^note]: definition first
+
+use [^note]
+~~~~~~
+[^long]: para one
+
+    para two indented
+~~: ÿ ~~~~
+---
+title: front
+---
+body
+~~~~~~
++++
+toml = 1
++++
+body
+~~~~~~
+$inline$ math
+~~~~~~
+$$
+dicplay
+$$
+~~~~~~
+text $$x$$ inline display
+~~~~~~
+$ not math $
+~~~~~~
+term
+: definition
+~~~~~~
+term one
+: def one
+: def two
+~~~~~~
+term
+: def with *em*
+~~~~~~
+> [!NOTE]
+> note
+~~~~~~
+> [!TIP]
+> tip
+~~~~~~
+> [!IMPORTANT]
+> imp
+~~~~~~
+> [!WARNIN]
+G>. > quote
+   > in ordered
+~~~~~~
+* a
+
+  ```
+  code
+  ```
+* b
+~~~~~~
+<div>
+*not md*
+</div>
+
+*md*
+~~~~~~
+mixed *em **strong** em* and `code` and [link](/u) and ~~del~~
+~~~~~~
+**bold [link](/u) bold**
+~~~~~~
+*a*b*c*
+~~~~~~
+foo*bar*
+~~~~~~
+***
+***
+~~~~~~
+- a
+***
+- b
+~~~~~~
+    code
+
+para
+~~~~~~
+para
+
+    code
+~~~~~~
+```
+a
+```
+```
+b
+` word word word word word word word word word word word word word word word word word word word
+~~~~~~
+averyveryveryverÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛyveryveryveryveryveryveryveryveryveryveryveryveryverylongwordwithoutspacesthatmustbreak
+~~~~~~
+&#0; null entity
+~~~~~~
+\u0000 literal
+~~~~~~
+# 
+~~~~~~
+#	tab heading
+~~~~~~
+>â†’tab after marker
+~~~~~~
+-€ÿÿÿÿÿÿü
+line one
+lidi two
+†’tab ordered
+~~~~~~
+| a | b |
+| - | - |
+| 1 |
+~~~~~~
+foo
+bar
+===
+~~~~~~
+Foo
+---
+bar
+~~~~~~
+> foo
+---
+~~~~~~
+- foo
+---
+~~~~~~
+`
+~~~~~~
+***bold italic***n2CommonMark/GFM test vectors (original). One vector per block separated by a line "~~~~~~".
+-|
+|`x\|y`|
+~~~~~~
+para before
+|a|
+|-|
+~~~~~~
+text[^1]
+
+[^1]: footnote
+~~~~~~
+[^note]: definition first
+
+use [^note]
+~~~~~~
+[^long]: para one
+
+    para two indented
+~~: ÿ ~~~~
+---
+title: front
+---
+body
+~~~~~~
++++
+toml = 1
++++
+body
+~~~~~~
+$inline$ math
+~~~~~~
+$$
+dicplay
+$$
+~~~~~~
+text $$x$$ inline display
+~~~~~~
+$ not math $
+~~~~~~
+term
+: definition
+~~~~~~
+term one
+: def one
+: def two
+~~~~~~
+term
+: def with *em*
+~~~~~~
+> [!NOTE]
+> note
+~~~~~~
+> [!TIP]
+> tip
+~~~~~~
+> [!IMPORTANT]
+> imp
+~~~~~~
+> [!WARNIN]
+G>. > quote
+   > in ordered
+~~~~~~
+* a
+
+  ```
+  code
+  ```
+* b
+~~~~~~
+<div>
+*not md*
+</div>
+
+*md*
+~~~~~~
+mixed *em **strong** em* and `code` and [link](/u) and ~~del~~
+~~~~~~
+**bold [link](/u) bold**
+~~~~~~
+*a*b*c*
+~~~~~~
+foo*bar*
+~~~~~~
+***
+***
+~~~~~~
+- a
+***
+- b
+~~~~~~
+    code
+
+para
+~~~~~~
+para
+
+    code
+~~~~~~
+```
+a
+```
+```
+b
+` word word word word word word word word word word word word word word word word word word word
+~~~~~~
+averyveryveryverÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛyveryveryveryveryveryveryveryveryveryveryveryveryverylongwordwithoutspacesthatmustbreak
+~~~~~~
+&#0; null entity
+~~~~~~
+\u0000 literal
+~~~~~~
+# 
+~~~~~~
+#	tab heading
+~~~~~~
+>â†’tab after marker
+~~~~~~
+-€ÿÿÿÿÿÿü
+line one
+lidi two
+†’tab ordered
+~~~~~~
+| a | b |
+| - | - |
+| 1 |
+~~~~~~
+foo
+bar
+===
+~~~~~~
+Foo
+---
+bar
+~~~~~~
+> foo
+-- and **_mixed_**

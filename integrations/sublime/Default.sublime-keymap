@@ -1,0 +1,7 @@
+[
+    {
+        "keys": ["ctrl+alt+m"],
+        "command": "yamdv_open_preview",
+        "context": [{ "key": "selector", "operator": "equal", "operand": "text.html.markdown" }]
+    }
+]

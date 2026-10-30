@@ -1,0 +1,28 @@
+# Spec patches of prompt 023 (owner 2026-10-30: word count in the title bar #98; Mermaid sequence `rect`).
+
+=== P-61a docs/UI_SPEC.md REPLACE
+--- old
+### B.10.3 Word-count badge
+Bottom-right, 12 px from the bottom and from the scrollbar; height 24, padding 0 10, radius 12, `chrome_bg` @ 90 % with 1 px `chrome_border`, 12 px `text_muted`; tooltip with details (R-READ-07).
+--- new
+### B.10.3 Word-count badge
+In the title bar (B.4), right after the file name (and the mode pill / unsaved dot): "· 168584 sözcük · 787578 karakter" (EN "· N words · M characters"; with a selection "sel / total"), 11 px `text_muted`, vertically centered, no background. It never moves with the scroll (#98; the earlier floating bottom-right bubble is removed). The file name keeps priority: when the rest does not fit before the title-bar buttons the count is hidden. Hidden while the title bar is hidden (F11). Tooltip with details (R-READ-07). Shown when `reading.word_count_badge` is on (menu / toolbar toggle unchanged).
+
+=== P-61b docs/UI_SPEC.md REPLACE
+--- old
+| `reading.word_count_badge` | bool | `false` | |
+--- new
+| `reading.word_count_badge` | bool | `false` | word / character count in the title bar next to the file name (B.10.3) |
+
+=== P-61c docs/UI_SPEC.md INSERT_AFTER
+--- anchor
+| note fill / stroke | `#fff8c5` / `#e3c34d` | `#3b3415` / `#a88f2a` |
+--- new
+| sequence `rect` band | the author's color (`rect rgb(r,g,b)`, `rect rgba(r,g,b,a)`, `#rgb` / `#rrggbb` / `#rrggbbaa`, CSS names) at its alpha over the card bg, behind lifelines, frames, messages and notes; bands nest and may hold `alt`/`loop`/`opt`/`par` and notes | same, but when body text would read < 4.5:1 on it (a light band under a dark UI, F-44/F-45) the band becomes ≤ 20 % of the author's color over the card bg (5 % steps down until text ≥ 4.5:1); High Contrast: no fill |
+
+=== P-61d docs/SPEC.md REPLACE
+--- old
+- **R-READ-07 MUST** **Word-count badge** (off by default): bottom-right, "1,234 words · 7,890 chars"; with a selection adds "· 12 selected".
+--- new
+- **R-READ-07 MUST** **Word-count badge** (off by default): in the title bar next to the file name (#98, B.10.3), "· 1,234 words · 7,890 characters"; with a selection shows "12 / 1,234".
+=== end

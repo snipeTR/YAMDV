@@ -1,0 +1,26 @@
+# Spec patches of prompt 021 (toolbar settings fixes, owner 2026-10-31) §2 item 5.
+
+=== P-59a docs/UI_SPEC.md REPLACE
+--- old
+- `toolbar.items` lists command IDs (keymap action IDs). Default: `open_file` · `live_edit`, `split_edit` | `find`, `heading_jump`, `toggle_sidebar` | `export_pdf`, `print`, `mind_map` | `toggle_favorite`, `theme` | `settings`. `theme` cycles System → Light → Dark with the matching icon. Format and Insert IDs show only in Live / Split Edit.
+--- new
+- `toolbar.items` is the set of enabled command IDs (keymap action IDs); `toolbar.order` is the order of **every** toolbar-capable command (empty = the default catalog order). The bar shows the enabled items in `toolbar.order`. Default set (Essentials): `open_file` · `live_edit`, `split_edit` | `find`, `heading_jump`, `toggle_sidebar` | `export_pdf`, `print`, `mind_map` | `toggle_favorite`, `theme` | `settings`. `theme` cycles System → Light → Dark with the matching icon. Format and Insert IDs show only in Live / Split Edit.
+
+=== P-59b docs/UI_SPEC.md REPLACE
+--- old
+- Settings has a **Toolbar** section (after Sidebar): Show toolbar, Icon size (16 / 20 / 24), a checklist of every toolbar-capable command (drag or `Alt+↑/↓` to reorder) and [Reset toolbar].
+--- new
+- Settings has a **Toolbar** section (after Sidebar):
+  - At the top, a segmented control with the presets **Off / Essentials / All** (TR: Kapalı / Önemliler / Hepsi). Off hides the toolbar (`toolbar.visible = false`); Essentials turns on the default 12 items; All turns on every toolbar-capable command (commands that do not apply in the current mode show disabled, overflow goes to »). A preset never changes `toolbar.order`. Turning a single item on or off by hand shows a fourth state, **Custom** (TR: Özel).
+  - Icon size (16 / 20 / 24).
+  - A list of **all** toolbar-capable commands in `toolbar.order`. Each row: icon, name, ▲ Move up / ▼ Move down buttons and an on/off switch. Turning an item off or on never moves it. ▲ / ▼, `Alt+↑/↓` and drag-and-drop change `toolbar.order`; the toolbar updates live.
+  - Edit-only items carry a small (11 px) grey (`text_muted`, ~70 %) note "Live / Split Edit only" on the same line, right of the name.
+  - [Reset toolbar] restores the Essentials set, the default order and `toolbar.visible = true`.
+
+=== P-59c docs/UI_SPEC.md REPLACE
+--- old
+| `toolbar.items` | string | `open_file,live_edit,split_edit,find,heading_jump,toggle_sidebar,export_pdf,print,mind_map,toggle_favorite,theme,settings` | comma-separated command IDs, in order |
+--- new
+| `toolbar.items` | string | `open_file,live_edit,split_edit,find,heading_jump,toggle_sidebar,export_pdf,print,mind_map,toggle_favorite,theme,settings` | comma-separated enabled command IDs (the Essentials preset); the bar shows them in `toolbar.order` |
+| `toolbar.order` | string | (empty = catalog order) | comma-separated order of every toolbar-capable command; presets and on/off never change it |
+=== end

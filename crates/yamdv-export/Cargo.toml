@@ -1,0 +1,23 @@
+[package]
+name = "yamdv-export"
+description = "HTML writer, PDF writer and CSV export."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+yamdv-core = { path = "../yamdv-core" }
+yamdv-layout = { path = "../yamdv-layout" }
+yamdv-highlight = { path = "../yamdv-highlight" }
+pdf-writer = { workspace = true }
+subsetter = { workspace = true }
+
+[dev-dependencies]
+# 018a: PDF parse-back in tests only (never linked into yamdv.exe).
+lopdf = { version = "=0.46.0", default-features = false }

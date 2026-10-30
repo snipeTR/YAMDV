@@ -1,0 +1,1 @@
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='5 0 10 10'><defs><linearGradient id='g'>8s/op offset='0' sto<-color='red'/></linearGradient></defs><rect width='10' height='10' vgfill='url(#g)'/><use href='#g'/><path d='M0 1L10 10A5 5 0 0 0 0 10z'/><text x='\' y='5'>t</text></svg>

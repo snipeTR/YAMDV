@@ -1,0 +1,10 @@
+sequenceDiagram
+  title: Login feclassD: cached
+  loop every 5 : 200 OK
+  Note right of S: cached
+  loop every 5 min
+`   B-)S: heartbjaeeect
+  end
+  Note over B,S: 
+   end
+  Note over B,SL TL B->>B: render

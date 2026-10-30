@@ -1,0 +1,33 @@
+# PERF-06 (v2.1.0): an external change while Split / Live edit has no unsaved changes is spliced
+# into the editor buffer — the mode stays, the buffer stays clean, it is one undo step, and only
+# the touched blocks of the preview are re-parsed.
+write-file eri.tmp.md "# Head\n\nfirst paragraph\n\nsecond paragraph\n\nthird paragraph\n"
+open eri.tmp.md
+wait-idle
+key f3
+wait-idle
+assert edit_mode == split
+assert dirty == 0
+ui file-replace eri.tmp.md|second paragraph|second paragraph changed outside
+sleep 1500
+wait-idle
+assert edit_mode == split
+assert dirty == 0
+assert buffer contains "second paragraph changed outside"
+assert preview contains outside
+assert reload_blocks >= 1
+assert reload_blocks <= 2
+assert undo_depth == 1
+key esc
+wait-idle
+key f2
+wait-idle
+assert edit_mode == live
+ui file-replace eri.tmp.md|third paragraph|third paragraph from disk
+sleep 1500
+wait-idle
+assert edit_mode == live
+assert dirty == 0
+assert preview contains "from disk"
+assert reload_blocks <= 2
+key esc

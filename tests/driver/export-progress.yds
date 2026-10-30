@@ -1,0 +1,78 @@
+# V2-B export progress (prompt 012 §5.2, BUG-11): needs the "Microsoft Print to PDF" printer;
+# run-tests.ps1 skips this script with a note when it is absent and polls the window from
+# outside (SendMessageTimeout WM_NULL, 100 ms) while it runs.
+command mode light
+wait-idle
+# Run 1: large-1mb.md (~1000 pages) in the background; the pages rise monotonically to N and the
+# view still scrolls. The native PDF writer (ADR-0018) finishes 30 pages within two progress
+# samples, so a ≥ 300-page document keeps the ≥ 3 rising samples meaningful (018a §1.3).
+open ../fixtures/large-1mb.md
+wait-idle
+ui job-reset
+ui export-pdf-bg ep-big.tmp.pdf
+assert job == running
+ui job-wait 3
+snapshot progress-card.png
+wheel -360
+wait-idle
+assert scroll_y > 0
+wheel 360
+ui job-done
+assert job == none
+assert job_last == ok
+assert job_monotonic == 1
+assert job_samples >= 3
+assert job_seen_total >= 300
+assert job_seen_n >= 300
+assert out_exists == 1
+assert worker == 0
+# F-43 (R-EXP-07): Copy as rich HTML of a > 256 KB document runs in the worker with the
+# progress card; the UI thread only puts the CF_HTML result on the clipboard.
+ui job-reset
+command copy-rich
+wait-idle
+ui job-done
+assert job_last == ok
+assert job_samples >= 1
+assert worker == 0
+assert clip_html == 1
+assert clip_html_scripts == 0
+assert clip_html_offsets_ok == 1
+# The HTML export runs in the worker too (its job file has no printer).
+ui job-reset
+ui export-html-bg ep-big.tmp.html
+ui job-done
+assert job_last == ok
+assert out_exists == 1
+# Run 2: large-1mb.md, cancel after 5 pages: no file, no worker left, memory and CPU back.
+open ../fixtures/large-1mb.md
+wait-idle
+sleep 1500
+ui mem-mark
+ui job-reset
+ui export-pdf-bg ep-large.tmp.pdf
+ui job-wait 5
+assert job == running
+ui job-cancel
+ui job-done
+assert job_last == cancelled
+assert out_exists == 0
+assert worker == 0
+# The "Export cancelled" toast hides (and repaints once) 4 s after the job ends; mark CPU after it.
+sleep 4500
+assert pws_delta_kib <= 205
+ui cpu-mark
+sleep 3000
+# Report-only (A-10): one timer tick (15.6 ms) of noise failed run 39983230028; the T7 gate is in the measurements step.
+assert cpu_delta_ms >= 0
+# Run 3: dark UI, default "Light" export colors: the output uses the light palette (BUG-10).
+command mode dark
+wait-idle
+open ../fixtures/colors.md
+wait-idle
+export-html ep-colors.tmp.html
+assert out_body_bg == #ffffff
+ui export-pdf-bg ep-colors.tmp.pdf
+ui job-done
+assert job_last == ok
+assert out_exists == 1

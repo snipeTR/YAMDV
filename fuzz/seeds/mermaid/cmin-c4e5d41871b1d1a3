@@ -1,0 +1,6 @@
+sequenceDiagram
+  title: Login flowr
+ actor U as User
+  participant B as Browser
+  participant S s aServer
+  TLS everywhf

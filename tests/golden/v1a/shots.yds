@@ -1,0 +1,189 @@
+# Window goldens (prompt 005 §4): run by `cargo xtask golden-shell` with an empty profile.
+# The V2-J toolbar (prompt 020 §5.2) is off until its own shots so the older goldens keep their layout.
+ui settings-set toolbar.visible=false
+wait-idle
+resize 1000 700
+wait-idle
+command mode light
+wait-idle
+snapshot welcome-install-light.png
+open ../../driver/a.md
+wait-idle
+snapshot doc-sidebar-light.png
+command mode dark
+wait-idle
+snapshot doc-sidebar-dark.png
+command mode light
+key ctrl+F
+type "target"
+wait-idle
+snapshot find-light.png
+key esc
+command scheme glacier
+wait-idle
+snapshot glacier-light.png
+command scheme default
+wait-idle
+# V1-B (prompt 006 §2.7): Split Edit, and Live Edit with an active source block.
+key f3
+wait-idle
+snapshot split-light.png
+key f3
+key f2
+click-text "Paragraph 2 of filler"
+wait-idle
+snapshot live-block-light.png
+key esc
+key esc
+# V2-A (prompt 011 §4): window top light / dark, the ⋯ menu, the scheme cards.
+# Content 1000 × 731 (+ the 32 px bar): the size the committed top goldens were taken at.
+resize 1000 731
+wait-idle
+command mode light
+wait-idle
+ui shot-window light.png
+command mode dark
+wait-idle
+ui shot-window dark.png
+command mode light
+wait-idle
+ui click more
+wait-idle
+ui popup-shot menu-light.png
+ui popup-key esc
+wait-idle
+command scheme-cards
+wait-idle
+# Hovered card (Mint, index 9): ring + live preview.
+ui popup-hover 9
+wait-idle
+ui popup-shot cards-light.png
+ui popup-key esc
+wait-idle
+# V2-C (prompt 013 §4): footnote tooltip + sup/sub, MotW banner + Ask popover, image viewer,
+# wide flowchart at the minimum scale below a folded H2 (BUG-08). Full window, 1000 × 731.
+command mode light
+open ../../driver/v2c.md
+wait-idle
+ui hover-hot-now footref
+wait-idle
+ui shot-window v2c-footnote-light.png
+ui hover-off
+write-file ../../driver/v2c-motw.tmp.md "# Downloaded\n\nSee [the site](https://example.com/x).\n"
+write-file ../../driver/v2c-motw.tmp.md:Zone.Identifier "[ZoneTransfer]\nZoneId=3\n"
+open ../../driver/v2c-motw.tmp.md
+command mode dark
+wait-idle
+click-link "the site"
+wait-idle
+ui shot-window v2c-motw-dark.png
+key esc
+command mode light
+open ../../driver/v2c.md
+wait-idle
+ui dblclick-media image
+wait-idle
+ui shot-window v2c-image-light.png
+ui viewer-key esc
+open ../../driver/v2c-wide.md
+wait-idle
+ui fold Folded notes
+wait-idle
+ui shot-window v2c-wide-light.png
+# V2-D (prompt 014 §4): Files tab, floating sidebar (dark), heading palette, balanced mind map.
+command mode light
+ui nav-tree yamdv-v2d-golden
+wait-idle
+key ctrl+shift+4
+ui nav-wait-files file10.md
+wait-idle
+ui shot-window v2d-files-light.png
+key ctrl+shift+1
+open ../../driver/toc-palette.md
+wait-idle
+ui settings-set sidebar.position=left-floating
+command mode dark
+wait-idle
+ui shot-window v2d-floating-dark.png
+ui settings-set sidebar.position=left
+command mode light
+wait-idle
+key ctrl+shift+o
+type in
+wait-idle
+ui shot-window v2d-palette-light.png
+key esc
+key ctrl+shift+m
+ui nav-mind-mode balanced
+wait-idle
+ui shot-window v2d-mindmap-light.png
+key esc
+wait-idle
+# V2-F (prompt 016 §4): F2 paragraph with revealed markers (light), F2 table with tools + grips (dark).
+command mode light
+open ../../driver/v2f-golden.md
+wait-idle
+key f2
+ui v2f-caret "8|Some **bold**"
+wait-idle
+ui shot-window v2f-reveal-light.png
+command mode dark
+ui v2f-caret "2|Fruit"
+wait-idle
+ui v2f-hover-grip col 1
+wait-idle
+ui shot-window v2f-table-dark.png
+key f2
+wait-idle
+command mode system
+# V2-G (prompt 017 §4): gantt + pie (light), state + class + ER (dark), SVG + math (light).
+command mode light
+open ../../driver/v2g-golden-a.md
+wait-idle
+ui shot-window v2g-a-light.png
+command mode dark
+open ../../driver/v2g-golden-b.md
+wait-idle
+ui shot-window v2g-b-dark.png
+command mode light
+open ../../driver/v2g-golden-c.md
+wait-idle
+sleep 300
+wait-idle
+ui shot-window v2g-c-light.png
+command mode system
+# V2-I (prompt 019 §4, FUT-47): reading view in High Contrast Black, settings in HC White.
+command mode dark
+open ../../driver/a.md
+wait-idle
+ui hc-on black
+wait-idle
+ui shot-window v2i-hc-black-dark.png
+command mode light
+ui hc-on white
+wait-idle
+ui click settings
+wait-idle
+ui shot-window v2i-hc-settings-white-light.png
+key esc
+ui hc-off
+wait-idle
+command mode system
+# V2-J (prompt 020 §5.0): F-44/F-46 Mermaid, %%{init}%% light theme under the dark UI with
+# sibling subgraphs and edge labels.
+command mode dark
+open ../../driver/v2j-mermaid-init.md
+wait-idle
+sleep 300
+wait-idle
+ui shot-window v2j-mermaid-init-dark.png
+# V2-J (prompt 020 §5.2): the toolbar under the title bar, light and dark.
+ui settings-set toolbar.visible=true
+command mode light
+open ../../driver/a.md
+wait-idle
+ui shot-window v2j-toolbar-light.png
+command mode dark
+wait-idle
+ui shot-window v2j-toolbar-dark.png
+command mode system

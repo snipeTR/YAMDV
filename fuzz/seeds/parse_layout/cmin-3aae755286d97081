@@ -1,0 +1,59 @@
+# Own CommonMark/GFM test vectors (original). One vector per block separated by a line "~~~~~~".
+# Lina|b|
+|-|-|
+|1|2|
+~~~~~~
+| left | center | right |
+|:----?|:------:|------:|
+| 1 | 2 | 3 |
+~~~~~~
+|a|
+|-|
+|`ˆ£ƒ†Ÿƒõ†~~~~~
+para before
+|a|
+|-|
+~~~~w~
+text[^1]
+
+[^1]: footnot
+
+    para two indented
+~~~~~~
+---
+titl# Own Coe: front
+---
+body
+~~~~~~
++++
+toml = 1
++++
+body
+~~~~~~
+$inline$ math
+~~~~~~
+$$
+display
+$$
+~~~~~~
+text $$x$$ inline display
+~~~~ 
+no~$~t mines
+~~~~~~
+paraNT]
+> im~~p
+~~~~
+> [!WARNING] >
+warn
+~~~~~~
+> [!CAUTION]
+> caution
+~~~~~~
+> [!NOTE]
+~~~~~~
+[[Wiki Link]]
+~~~~~~
+[[target|label]]
+~~~~~~
+line  sixon
+e

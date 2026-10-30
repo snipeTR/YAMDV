@@ -1,0 +1,26 @@
+# Spec patches of prompt 024 (owner 2026-10-30: build the open issues #86, #59, #26 → v2.1.0).
+
+=== P-62a docs/SPEC.md REPLACE
+--- old
+- **R-F2-11 MAY** Visual Mermaid editing for flowcharts (double-click node → edit label; written back to source).
+--- new
+- **R-F2-11 MAY** Visual Mermaid editing for flowcharts (double-click node → edit label; written back to source). v2.1.0 (#86, ADR-0027), Live (F2) and Split (F3) Edit: a click on a rendered `flowchart`/`graph` selects a node or an edge; double-click, Enter or typing edits its label in place (Enter commits, Esc cancels); Delete removes it (a node together with its edges and its `class`/`style`/`click` lines; `linkStyle` indices are renumbered); Tab adds a new node connected from the selected one; dragging a node onto another adds `A --> B`. Each change rewrites only the affected statements of the fence and is one undo step. Layout stays automatic (no manual positions). Other diagram types, diagrams wider than their card, diagrams beyond the complex-layout limit and fences inside containers stay source-edited.
+
+=== P-62b docs/SPEC.md REPLACE
+--- old
+- **R-READ-01 MUST** **Live reload**: the open file is watched (directory watch, so atomic-rename saves are caught). External change → re-render within 100 ms, only changed blocks, scroll anchored to the same block, no flicker. Deleted → R-OPEN-11. If there are unsaved in-app edits → conflict banner (R-EDIT-03).
+--- new
+- **R-READ-01 MUST** **Live reload**: the open file is watched (directory watch, so atomic-rename saves are caught). External change → re-render within 100 ms, only changed blocks, scroll anchored to the same block, no flicker. Deleted → R-OPEN-11. If there are unsaved in-app edits → conflict banner (R-EDIT-03). In F2/F3 without unsaved edits the change is spliced into the edit buffer as one undo step (only the differing byte range; mode, caret and scroll kept; the buffer stays clean) and the preview re-lays out only the changed blocks (PERF-06 #59).
+
+=== P-62c docs/SHORTCUTS.md INSERT_AFTER
+--- anchor
+Table context (R-TBL): `Tab`/`Shift+Tab` next/previous cell, `Enter` cell below, `Shift+Enter` `<br>`, `Ctrl+Alt+↑/↓` move row, `Ctrl+Alt+←/→` move column, `Ctrl+Shift+Backspace` delete row.
+--- new
+Flowchart context (R-F2-11, a node or edge of a rendered flowchart selected by a click): `Enter` / double-click / typing edit the label (`Enter` commits, `Esc` cancels), `Delete`/`Backspace` delete, `Tab` add a connected node, drag a node onto another to connect, `Esc` deselect.
+
+=== P-62d docs/UI_SPEC.md REPLACE
+--- old
+Code-block language label becomes an input on click. Inline popovers per B.10.6.
+--- new
+Code-block language label becomes an input on click. Inline popovers per B.10.6. Flowchart editing (R-F2-11, also in F3's preview): the selected node gets a 2 px `accent` outline 4 px outside its shape (radius 6), a selected edge a 3 px `accent` overlay on its path (plus its label box); while dragging to connect, a 2 px `accent` line follows the pointer and the target node is outlined. The label input sits over the node (or edge label), `bg` fill, 1.5 px `accent` border, radius 4, the diagram's font, caret 1.5 px `text`; new text starts fully selected.
+=== end

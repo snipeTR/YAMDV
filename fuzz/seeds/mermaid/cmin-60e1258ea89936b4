@@ -1,0 +1,19 @@
+flowchart TD
+  stnk-----------------------------c----classDiagram---------partA----------0---------------linkSt-4-------igr---gr-----------------6----------ink--------4-------------igr--------------0---------ink--------4-------------igr-------------4---------ink--------4-------m-----ig-----ig--r-gr-----------------4----------ink-------------------ink--------4-------------igr---gr-----------------4----------ink--------4-----------4----------ind--------24------4-------------ink--------4-------------igr---gr-----------------4----------ink--------4-------------igr-----------------4---------ink------24------4---------------igr---gr-----------------ink--------4-------------igr-----ink--------4-------------igl
+  subgraph ba--A4----------------lllllllllllllllll---------link-------c
+  cla------c
+ la-----c
+KKK---KKKKKKKKKKKKKKKK----llllllllllllllllllllllllllllparticipantlllllllllllllllbllllllllllllllllllllllllllllllllllllllllllllllll---------link--------0-------------c
+  cla------c
+ la------c
+  cl------c
+KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKb
+  end
+  cla--link-------c
+  cla------c
+ la------c
+  cl------c
+ c
+    dKKKKKKKKKKKKKKKKK----lllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllll---------link-------c
+  cla------------------3-----acncdt----ink--------4--------nk-------------z1--------H-m-link------------------2-----partA----------------------H---link------------------2------------------linkStyle-------------------------------link-----------------1---A-2---------------66666666666------A-----------------------c
+  class err hot

@@ -1,0 +1,62 @@
+# IDEA-05 / R-F2-11 (v2.1.0): a rendered flowchart is edited in place in Live (F2) and Split (F3)
+# Edit: select, relabel, add a connected node, connect by drag, delete. Every change is written
+# back into the fence as one undo step of the source.
+write-file mv.tmp.md "# Flow\n\n```mermaid\nflowchart TD\n    A[Start] --> B[End]\n```\n\nafter\n"
+open mv.tmp.md
+wait-idle
+key f2
+wait-idle
+assert edit_mode == live
+ui mmd-click 1
+wait-idle
+assert mmd == node:1
+assert active_block == -1
+key enter
+assert mmd == node:1+edit
+type "Finish"
+key enter
+wait-idle
+assert mmd == node:1
+assert buffer contains "B[Finish]"
+assert dirty == 1
+assert undo_depth == 1
+key tab
+wait-idle
+assert mmd == node:2+edit
+type "Next"
+key enter
+wait-idle
+assert buffer contains "B --> n1[Next]"
+sleep 700
+ui mmd-drag 0 2
+wait-idle
+assert buffer contains "A --> n1"
+sleep 700
+ui mmd-click e0
+wait-idle
+assert mmd == edge:0
+key delete
+wait-idle
+assert mmd == none
+assert buffer !contains "A[Start] --> B"
+key ctrl+Z
+wait-idle
+assert buffer contains "A[Start] --> B[Finish]"
+key esc
+wait-idle
+assert edit_mode == read
+key f3
+wait-idle
+assert edit_mode == split
+sleep 700
+ui mmd-dblclick 0
+wait-idle
+assert mmd == node:0+edit
+type "Begin"
+key enter
+wait-idle
+assert buffer contains "A[Begin]"
+assert preview contains Begin
+key esc
+wait-idle
+key esc

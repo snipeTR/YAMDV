@@ -1,0 +1,83 @@
+{
+  "name": "yamdv-preview",
+  "displayName": "YAMDV Preview",
+  "description": "Open the current Markdown file in YAMDV (live preview that follows saves). No network, no telemetry.",
+  "version": "2.1.0",
+  "publisher": "yamdv",
+  "license": "AGPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/snipeTR/YAMDV"
+  },
+  "private": true,
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "yamdv.openPreview",
+        "title": "YAMDV: Open preview",
+        "icon": "$(open-preview)"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "yamdv.openPreview",
+          "when": "resourceLangId == markdown",
+          "group": "navigation"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "yamdv.openPreview",
+          "when": "resourceLangId == markdown"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "yamdv.openPreview",
+          "when": "editorLangId == markdown"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "YAMDV",
+      "properties": {
+        "yamdv.path": {
+          "type": "string",
+          "default": "",
+          "scope": "machine",
+          "description": "Full path of yamdv.exe. Empty: yamdv.exe on PATH, then %LOCALAPPDATA%\\Programs\\YAMDV\\yamdv.exe."
+        },
+        "yamdv.passLine": {
+          "type": "boolean",
+          "default": true,
+          "description": "Open the preview at the editor's current line (--line N)."
+        },
+        "yamdv.saveFirst": {
+          "type": "boolean",
+          "default": true,
+          "description": "Save the document before opening it (YAMDV reloads the file on every later save)."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "test": "tsc -p ./ && node out/launch.test.js",
+    "package": "node -e \"require('fs').copyFileSync('../../LICENSE','LICENSE')\" && tsc -p ./ && vsce package --no-dependencies"
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.0",
+    "@types/vscode": "^1.75.0",
+    "typescript": "^5.4.0",
+    "@vscode/vsce": "^3.0.0"
+  }
+}

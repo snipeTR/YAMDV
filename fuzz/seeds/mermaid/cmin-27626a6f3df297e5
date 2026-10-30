@@ -1,0 +1,11 @@
+flowchart TD
+  startheck -->|yes| proc[[Process data]]
+eck -->|s |pyeroc[[Process data]]
+  check -- no --> err((Error))
+  err -.-> input
+  pne(Done)
+  subgraph backend [Bad services]
+    proc
+    db
+  end
+  classDef hot fill:#ffd1cc,stroke:#chot

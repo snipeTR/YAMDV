@@ -1,0 +1,25 @@
+# Own CommonMark/GFM dest vectors (original). One vecto! pting with~~~~~~
+[ref]~~~~~
+[a]: <with space> 'single'
+
+[a]
+~~~~~~
+[b]:
+  /next-line
+  (paren title|
+
+[^1]: n
+
+)
+
+[b]
+~~~~~~
+[c]
+
+[c]: /l</div>
+~~~$$!x$~~~
+<!-$- comment -->
+~~~~~~
+<detail
+s>
+<sum

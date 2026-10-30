@@ -1,0 +1,23 @@
+# Spec patches of prompt 018 (Phase V2-H) §2.3, extracted verbatim from docs/prompts/018_V2H_EXPORT_INTEGRATION.md.
+
+=== P-49 docs/UI_SPEC.md INSERT_AFTER
+--- anchor
+| `export.html_include_toc` | bool | `true` | |
+--- new
+| `export.html_interactive` | bool | `true` | `false` = static, script-free export (the v1 behavior) |
+=== P-50 docs/SPEC.md REPLACE
+--- old
+light/dark toggle, in-page find — implemented with a tiny inline script protected by a hash-based CSP (`S-EXP-02`).
+--- new
+light/dark toggle, in-page find — implemented with a tiny inline script protected by a hash-based CSP (`S-EXP-02`). With `export.html_interactive` off, the export is static and contains no script (its CSP then has no `script-src`).
+=== P-51 docs/SPEC.md REPLACE
+--- old
+smooth (setting);
+--- new
+smooth (setting): wheel notches accumulate into one moving target that each new notch retargets, so fast scrolling is never slowed, paused or restarted; precision touchpad and scrollbar-thumb drags scroll directly; nothing snaps while the user scrolls — with `reading.scroll_snap = smart` the view may settle onto a heading only after resting ≥ 150 ms when the last movement was slow and a heading top is within 24 px, with `off` never; block-height corrections never move visible content;
+=== P-52 docs/UI_SPEC.md INSERT_AFTER
+--- anchor
+| `reading.smooth_scrolling` | bool | `true` | |
+--- new
+| `reading.scroll_snap` | enum | `smart` | `smart`, `off` (R-REN-17) |
+=== end

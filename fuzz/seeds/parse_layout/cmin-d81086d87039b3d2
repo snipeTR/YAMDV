@@ -1,0 +1,460 @@
+# Own CommonMark/GFM test vectors (original). One vector per block separated by a lin~~~
+## ATX two ##
+~~~~~~
+###### six
+~~~~~~
+####### seven is a paragraph
+~~~~~~
+#no space
+~~~~~~
+#
+~~~~~~
+# heading with *emphasis* and `code`
+~~~~~~
+Setext one
+===
+~~~
+~~~Setext two
+---
+~~~~~~
+multi line
+setext
+===
+~~~~~~
+# Heading {#custom-id}
+~~~~~~
+## Another {#x .cls}
+~~~~~~
+***
+~~~~~~
+---
+~~~~~~
+___
+~~~~~~
+ * * *
+~~~~~~
+para
+***
+para
+~~~~~~
+    indented code
+    two
+~~~~~~
+â†’tab indented code
+~~~~~~
+```
+fenced
+```
+~~~~~~
+```rust
+fn main() {}
+```
+~~~~~~
+~~~
+tilde fence
+~~~
+~~ote
+lazy continuation
+~~~~~~
+> one
+>
+> two
+~~~~~~
+> > nested
+~~~~~~
+> # heading in quote
+> para
+~~~~~~
+> - list in quote
+> - b
+~~~~~~
+> ```
+> code in quote
+> ```
+~~~~~~
+>
+~~~~~~
+- a
+- b
+~~~~~~
+* star
+* list
+~~~~~~
++ plus
++ list
+~~~~~~
+1. one
+2. two
+~~~~~~
+3. three
+4. four
+~~~~~~
+1) paren
+2) list
+~~~~~~
+- a
+
+- b
+~~~~~~
+- a
+  - b
+    - c
+      - d
+~~~~~~
+1. a
+   1. b
+      1. c
+~~~~~~
+- a
+- b
+1. c
+~~~~~~
+- item
+
+  second paragraph
+~~~~~~
+- item
+  lazy
+~~~~~~
+- ```
+  code in item
+  ```
+~~~~~~
+- > quote in item
+~~~~~~
+-
+  empty first line
+~~~~~~
+- [ ] task
+- [x] done
+~~~~~~
+- [X] upper
+~~~~~~
+1. [ ] ordered task
+~~~~~~
+- a
+- b
+
+- c
+~~~~~~
+10. ten
+11. eleven
+~~~~~~
+-    four spaces
+~~~~~~
+- # heading item
+~~~~~~
+- ***
+~~~~~~
+<div>
+html block
+</div>
+~~~~~~
+<!-# Bozu# ÖÐÎÄÎÄµµ
+
+ÕâÊÇÒ»¸ö²âÊÔÎÄµµ¡£ÎÒÃÇÕýÔÚÑéÖ¤±àÂë¼ì²âÊÇ·ñÄiÜ¹»ÕýÈ·Ê¶±ð¼òÌåÖÐÎÄÎÄ±¾£¬²¢ÇÒÄÜ¹»ÕýÈ·k UTF-8
+
+B½âu dosya geÃ§erli UTF-8 iÃ§eriyor: bbbbbbbbbbbbbbbbbbÂëËùÓÐ×Ö·û¡£
+½ñÌìÌìÆøºÜºÃ£¬ÎÒÃÇÈ¥¹~~
+1. one
+2. two
+~~~~~~
+3. t@hree
+4. four
+~~~~~~
+1) paren
+2) list
+~~~~~~
+- a
+
+- b
+~~~~~~
+- a
+  - b
+    - c
+      - d
+~~~~~~
+1. a
+   1. b
+      1. c
+~~~~~~
+- a
+- b
+1. c
+~~~~~~
+- item
+
+  second paragraph
+~~~~~~
+- item
+  lazy
+~~~~~~
+- ```
+  code in item
+  ```
+~~~~~~
+- > quote in item
+~~~~~~
+-
+  empty first line
+~~~~~~
+- [ ] task
+- [x] done
+~~~~~~
+- [X] upper
+~~~~~~
+1. [ ] ordered task
+~~~~~~
+- a
+- b
+
+- c
+~~~~~~
+10. ten
+11. eleven
+~~~~~~
+-    four spaces
+~~~~~~
+- # h- item
+  lazy
+~~~~~~
+- ```
+  code in item
+  ```
+~~~~~~
+- > quote in item
+~~~~~~
+-
+  empty first line
+~~~~~~
+- [ ] task
+- [x] done
+~~~~~~
+- [X] upper
+~~~~~~
+1. [ ] ordered task
+~~~~~~
+- a
+- b
+
+- c
+~~~~~~
+10. ten
+11. eleven
+~~~~~~
+-  > nested
+~~~~~~
+> # heading in quote
+> para
+~~~~~~
+> - list in quote
+> - b
+~~~~~~
+> ```
+> code in quote
+> ```
+~~~~~~
+>
+~~~~~~
+- a
+- b
+~~~~~~
+* star
+* list
+~~~~~~
++ plus
++ list
+~~~~~~
+1. one
+2. two
+~~~~~~
+3. three
+4. four
+~~~~~~
+1) paren
+2) list
+~~~~~~
+- a
+
+- b
+~~~~~~
+- a
+  - b
+    - c
+      - d
+~~~~~~
+1. a
+   1. b
+      1. c
+~~~~~~
+- a
+- b
+1. c
+~~~~~~
+- item
+
+  second paragraph
+~~~~~~
+- item
+  lazy
+~~~~~~
+- ```
+  code in item
+  ```
+~~~~~~
+- > quote in item
+~~~~~~
+-
+  empty first line
+~~~~~~
+- [ ] task
+- [x] done
+~~~~~~
+- [X] upper
+~~~~~~
+1. [ ] ordered task
+~~~~~~
+- a
+- b
+
+- c
+~~~~~~
+10. ten
+11. eleven
+~~~~~~
+-    four spaces
+~~~~~~
+- # heading item
+~~~~~~
+- ***
+~~~~~~
+<div>
+html block
+</div>
+~~~~~~
+<!-# Bozu# ÖÐÎÄÎÄµµ
+
+ÕâÊÇÒ»¸ö²âÊÔÎÄµµ¡£ÎÒÃÇÕýÔÚÑéÖ¤±àÂë¼ì²âÊÇ·ñÄiÜ¹»ÕýÈ·Ê¶±ð¼òÌåÖÐÎÄÎÄ±¾£¬²¢ÇÒÄÜ¹»ÕýÈ·k UTF-8
+
+B½âu dosya geÃ§erli UTF-8 iÃ§eriyor: bbbbbbbbbbbbbbbbbbÂëËùÓÐ×Ö·û¡£
+½ñÌìÌìÆøºÜºÃ£¬ÎÒÃÇÈ¥¹~~
+1. one
+2. two
+~~~~~~
+3. t@hree
+4. four
+~~~~~~
+1) paren
+2) list
+~~~~~~
+- a
+
+- b
+~~~~~~
+- a
+  - b
+    - c
+      - d
+~~~~~~
+1. a
+   1. b
+      1. c
+~~~~~~
+- a
+- b
+1. c
+~~~~~~
+- item
+
+  second paragraph
+~~~~~~
+- item
+  lazy
+~~~~~~
+- ```
+  code in item
+  ```
+~~~~~~
+- > quote in item
+~~~~~~
+-
+  empty first line
+~~~~~~
+- [ ] task
+- [x] done
+~~~~~~
+- [X] upper
+~~~~~~
+1. [ ] ordered task
+~~~~~~
+- a
+- b
+
+- c
+~~~~~~
+10. ten
+11. eleven
+~~~~~~
+-    four spaces
+~~~~~~
+- # h- item
+  lazy
+~~~~~~
+- ```
+  code in item
+  ```
+~~~~~~
+- > quote in item
+~~~~~~
+-
+  empty first line
+~~~~~~
+- [ ] task
+- [x] done
+~~~~~~
+- [X] upper
+~~~~~~
+1. [ ] ordered task
+~~~~~~
+- a
+- b
+
+- c
+~~~~~~
+10. ten
+11. eleven
+~~~~~~
+-    four spaces
+~~~~~~
+- # heeading item
+~~~~~~
+- ***
+~~~~~~
+<div>
+html block
+<?</div>
+~~~~~~
+<!-# Bozu# ÖÐÎÄÎÄµµ
+
+ÕâÊÇÒ»¸ö²âÊÔÎÄµµ¡£ÎÒÃÇÕýÔÚÑéÖ¤±àÂë¼ì²âÊÇ·ñÄiÜ¹»ÕýÈ·Ê¶±ð¼òÌåÖÐÎÄÎÄ±¾£¬²¢ÇÒÄÜ¹»ÕýÈ·k UTF-8
+
+B½âu dosya geÃ§erli UTF-  four spaces
+~~~~~~
+- # heeading item
+~~~~~~
+- ***
+~~~~~~
+<div>
+html block
+<?</div>
+~~~~~~
+<!-# Bozu# ÖÐÎÄÎÄµµ
+
+ÕâÊÇÒ»¸ö²âÊÔÎÄµµ¡£ÎÒÃÇÕýÔÚÑéÖ¤±àÂë¼ì²âÊÇ·ñÄiÜ¹»ÕýÈ·Ê¶±ð¼òÌåÖÐÎÄÎÄ±¾£¬²¢ÇÒÄÜ¹»ÕýÈ·k UTF-8
+
+B½âu dosya geÃ§erli UTF-8 iÃ§eriyor: bbbbbbbbbbbbbbbbbbÂëËùÓÐ×Ö·û¡£
+½ñÌìÌìÆøºÜºÃ£¬ÎÒÃÇÈ¥¹«Ô°É¢²½£¬¿´µ½ word word word word word word word word
+~~~~~~
+averyveryveryve¶äºÍ¸ß´óµÄbbbbbbbbbbbbbbbbb*_mixed_**ve Ã so
+n£
+.

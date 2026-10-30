@@ -1,0 +1,68 @@
+# 018a §2-A (018 F-37, BUG-12, P-51): wheel scrolling on large-1mb.md through the scroll trace.
+# CI runners disable client-area animations; motion-on keeps the smooth wheel path under test.
+ui motion-on
+ui settings-set reading.smooth_scrolling=true
+ui settings-set reading.scroll_snap=smart
+wait-idle
+open ../fixtures/large-1mb.md
+wait-idle
+sleep 1500
+# 1. Fast: 30 notches within 300 ms. Every frame moves down (no reversal, no stall of 2 frames),
+# the end is within one notch of the sum of the deltas (no snap), frame p95 ≤ 16.7 ms and no
+# frame beyond two refreshes (p99 ≤ 33.4 ms). F-52: a burst paints ~30-40 frames, so p99 is the
+# single slowest frame; hosted runners put one first-layout frame at 18-21 ms (runs 41067509042,
+# 41088770469) while fast runners measure 12-15 ms.
+ui scroll-trace on
+ui wheel-stream 30:120:10
+sleep 1500
+ui scroll-trace sf-burst.tmp.txt
+assert trace_inputs == 30
+assert trace_monotonic == 1
+assert trace_max_stall < 2
+assert trace_end_notches <= 1
+assert trace_settles == 0
+assert trace_p95 <= 16.7
+assert trace_p99 <= 33.4
+assert wheel_active == 0
+# 2. Free-spinning wheel (1500 messages of delta 15, one every 3 ms): the view is at the target
+# within 60 ms after the last input, with no snap.
+ui scroll-trace on
+ui wheel-stream 1500:15:3
+sleep 6500
+ui scroll-trace sf-stream.tmp.txt
+assert trace_settle_ms <= 60
+assert trace_settles == 0
+assert trace_end_notches <= 1
+assert trace_monotonic == 1
+# 3. One slow notch ending 10 DIPs above a heading: smart settles onto it after the rest.
+# Heading tops below the screen are estimates until laid out: near-heading runs once, the
+# region is painted (wait-idle), and near-heading runs again on the exact top.
+ui near-heading 10
+wait-idle
+ui near-heading 10
+wheel -120
+sleep 900
+assert wheel_active == 0
+assert snap_dist < 1
+# 4. The same with scroll_snap = off: the view stays where the notch ended.
+ui settings-set reading.scroll_snap=off
+wait-idle
+ui near-heading 10
+wait-idle
+ui near-heading 10
+wheel -120
+sleep 900
+assert wheel_active == 0
+assert snap_dist >= 9
+assert snap_dist <= 11
+# 5. Touchpad: fractional deltas scroll directly, with no animation. near-heading 100 puts the
+# view 100 + one notch (3 lines × 40 = 120) above the heading; a delta of 30 moves 30 DIPs.
+ui touchpad on
+ui near-heading 100
+wait-idle
+ui near-heading 100
+wheel -30
+assert wheel_active == 0
+assert snap_dist >= 189
+assert snap_dist <= 191
+ui touchpad off

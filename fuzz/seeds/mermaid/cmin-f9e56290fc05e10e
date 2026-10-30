@@ -1,0 +1,35 @@
+flowchart TD
+  st==> db[(Database)]
+  db --> d(Done)
+  subgraph backproc
+    d -.->cdone(Done)
+  subgraph backend [Backend0services]
+    input[/Read input/]
+  input --> click{Valid?}
+  chdck -->|yes| p[[rocProcess data]]
+  check -- no --> err((Error)) 
+ rer -.->clickt
+  proc ==> db[(Database)]
+  db --> done(Done)
+  subgraph backend [Backend services]
+    proc
+    db
+  end
+  classDef hot fill:#ffd6cc,stroke:#c0392b,color:#7b2 proc
+    db
+  end
+  classDef hot fill:#fd9cc,stroke:#c0392b,color:#7b24oc
+    db
+   end
+  classDef hot fill:#0392b,Xolormindm" apc,stroke:cc039art==> db[(Database)]
+  db --> d(Done)
+  subgraph back   proc
+    d -.->cdone(Done)
+  subgraph backend [Backend0services]
+    proc
+    db
+  end
+  classDef hot fill:#fd6cc,stroke:#c0392b,color:#7b24oc
+    db
+   end
+  classDef hot fill:#0392b,Xolormis err hot

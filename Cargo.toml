@@ -1,0 +1,114 @@
+[workspace]
+resolver = "3"
+members = [
+    "crates/yamdv-core",
+    "crates/yamdv-layout",
+    "crates/yamdv-highlight",
+    "crates/yamdv-math",
+    "crates/yamdv-mermaid",
+    "crates/yamdv-svg",
+    "crates/yamdv-editor",
+    "crates/yamdv-ui",
+    "crates/yamdv-export",
+    "crates/yamdv-platform-win",
+    "crates/yamdv-app",
+    "xtask",
+    "spikes",
+]
+# The product build is `cargo build -p yamdv-app --release`; spikes and xtask are never linked into yamdv.exe.
+default-members = ["crates/yamdv-app"]
+
+[workspace.package]
+version = "2.1.0"
+edition = "2024"
+rust-version = "1.99"
+license = "AGPL-3.0-or-later"
+repository = "https://github.com/snipeTR/YAMDV"
+publish = false
+
+[workspace.dependencies]
+# Product (Windows only, features chosen per crate).
+windows = { version = "=0.62.2", default-features = false }
+# Dev / tooling only (never linked into yamdv.exe).
+object = { version = "=0.40.0", default-features = false, features = ["read_core", "pe", "std"] }
+serde_json = { version = "=1.0.154", default-features = false, features = ["std"] }
+windows-core = { version = "=0.62.2", default-features = false }
+windows-numerics = { version = "=0.3.1", default-features = false }
+pulldown-cmark = { version = "=0.13.5", default-features = false }
+encoding_rs = { version = "=0.8.42", default-features = false, features = ["alloc"] }
+chardetng = { version = "=1.0.0", default-features = false }
+unicode-segmentation = { version = "=1.13.3", default-features = false }
+regex-lite = { version = "=0.1.9", default-features = false, features = ["std", "string"] }
+ropey = { version = "=1.6.1", default-features = false, features = ["simd"] }
+proptest = { version = "=1.12.0", default-features = false, features = ["std"] }
+tiny-skia = { version = "=0.12.0", default-features = false, features = ["std", "simd"] }
+# Native PDF writer (ADR-0023, R-EXP-01).
+pdf-writer = { version = "=0.15.0", default-features = false }
+subsetter = { version = "=0.2.6", default-features = false }
+miniz_oxide = { version = "=0.9.1", default-features = false, features = ["with-alloc"] }
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
+unused_must_use = "deny"
+
+[workspace.lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+todo = "deny"
+unimplemented = "deny"
+dbg_macro = "deny"
+print_stdout = "deny"
+print_stderr = "deny"
+undocumented_unsafe_blocks = "deny"
+indexing_slicing = "warn"
+cast_possible_truncation = "warn"
+cast_sign_loss = "warn"
+large_stack_arrays = "warn"
+large_types_passed_by_value = "warn"
+
+[profile.release]
+opt-level = "z"          # prompt 020 §3.9 (ADR-0026 candidate d): "z" by default, -183 KB
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = "symbols"
+debug = false
+overflow-checks = true   # security over micro-speed
+incremental = false
+
+# The raster pipeline is the per-pixel hot path (T4/T5): it keeps "s".
+[profile.release.package.tiny-skia]
+opt-level = "s"
+# V2-G (prompt 017 size budget): the content engines render once into caches, never per frame.
+[profile.release.package.yamdv-mermaid]
+opt-level = "z"
+[profile.release.package.yamdv-svg]
+opt-level = "z"
+[profile.release.package.yamdv-math]
+opt-level = "z"
+[profile.release.package.yamdv-highlight]
+opt-level = "z"
+[profile.release.package.yamdv-export]
+opt-level = "z"
+# V2-H (prompt 018 §2.2 size room): UI glue, dialogs and settings run on input, not per pixel.
+# 018a diag run 40961787027: "s" here measured the same T4 (median warm p99 8.3 ms vs 8.1 ms
+# with "z") for +182 KB of exe, so "z" stays.
+[profile.release.package.yamdv-platform-win]
+opt-level = "z"
+[profile.release.package.yamdv-ui]
+opt-level = "z"
+[profile.release.package.yamdv-editor]
+opt-level = "z"
+[profile.release.package.yamdv-app]
+opt-level = "z"
+
+[profile.release-dbg]    # for profiling/analysis
+inherits = "release"
+strip = "none"
+debug = "line-tables-only"
+
+# The regex engine runs optimised in test builds too (regex guard test, prompt 015 §3.2).
+[profile.dev.package.regex-lite]
+opt-level = 3

@@ -1,0 +1,20 @@
+sequenceDiagram
+  title: Login flow
+  autonumber
+B->>+S: GET /loginW
+  S-->>-B: 20ocess  Note r>B: Open page
+  B->>+S: GET /login
+  S-->>-B: 21ocess\ Note r2ight !o
+  participant S as Server
+  U->>B: O+S: GET /lpant S as Server
+  U->>B: Open page
+  B->>+S: GET /login
+  S-->>-B: 64ocess  Note right o  Note over 
+  B->>+S: GEpen page
+  B->>+S: GET /login
+  S-->>-B: 19ocess  Note right o  Note over 
+  B->>+S: GET /login
+  [-->>-B: 20oce ET /login
+  S-->>-B: 10ocess  Note right o  Note over 
+  B->>+S: GET /login
+  S-->>-B: 20oer

@@ -1,0 +1,6 @@
+classDiagram
+  start([Starut])-> - ~$Lu
+~ --> sequenceD;agram
+								class			,			~		~~~~~~~~~~~~~~~~~~~t$Lu
+~ --> senceDiagram
+								class							,					t~~~~~~~~~

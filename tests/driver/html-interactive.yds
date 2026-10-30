@@ -1,0 +1,45 @@
+# 018a §2-C: interactive HTML export (R-EXP-02, S-EXP-02), Copy as rich HTML and Save as PNG (R-EXP-06).
+write-file hi.tmp.md "# Interactive\n\n## Math\n\nInline $e^{i\pi}+1=0$ and display:\n\n$$\n\int_0^1 x^2\,dx = \frac{1}{3}\n$$\n\n## Diagram\n\n```mermaid\ngraph TD\nA-->B\n```\n\n## Image\n\nLocal ![png](../corpus/002/typical-assets/one.png) and remote ![r](https://example.org/r.png).\n\n- one\n- two\n\n<script>alert(1)</script>\n"
+command mode light
+ui settings-set export.html_interactive=true
+wait-idle
+open hi.tmp.md
+wait-idle
+export-html hi.tmp.html
+assert out_len > 1000
+assert out_scripts == 1
+assert out_csp_hash_ok == 1
+assert out_ext_refs == 0
+assert out_ext_src == 0
+# Math (inline + display) and the Mermaid diagram are inline <svg>, not data: images.
+assert out_svg >= 3
+assert out_imgs == 1
+# Static mode: no script at all.
+ui settings-set export.html_interactive=false
+wait-idle
+export-html hi-static.tmp.html
+assert out_scripts == 0
+assert out_csp == 1
+assert out_ext_src == 0
+ui settings-set export.html_interactive=true
+wait-idle
+# Copy as rich HTML: CF_HTML without <script and with consistent offsets.
+command copy-rich
+wait-idle
+assert clip_html == 1
+assert clip_html_scripts == 0
+assert clip_html_offsets_ok == 1
+# Save as PNG… on the diagram and on the mind map write valid PNG files.
+ui save-to hi-diagram.tmp.png
+ui diagram-save-png
+wait-idle
+assert out_png_w > 0
+key ctrl+shift+m
+wait-idle
+assert mind == right
+ui save-to hi-mind.tmp.png
+key ctrl+s
+wait-idle
+assert out_png_w > 0
+key ctrl+shift+m
+wait-idle

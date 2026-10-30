@@ -1,0 +1,195 @@
+# Own CommonMark/GFM test vectors (original). One vector per block separated byrong__
+~~~~~~
+***both***
+~~~~~~
+*neste~
+~~~d~\[nolay
+$$
+~~# ³­ ```
+  indented fence
+  ```
+~[^1~~~~~
+```js title="x"
+info string
+```
+~~~~~~
+```
+
+blank lines
+
+```
+~~~~~~
+> quote
+~~~~~~
+> qu# Own CommonMark/GFM test vectors (original). One vector per blo~~~
+```
+
+blank lines
+
+```
+~~~~~~
+~~~~
+text $$x$$ inline display
+~~~~~~
+$ not math $
+~~~~~~
+term
+: definition
+~~~~~~
+term one
+: def one
+: def two
+~~~~~~
+term
+: def with *em*
+~~~~~~
+> [!NOTEj
+> note
+~~~~~~
+> [!TIP]
+> tip
+~~~~~~
+> [!IMPORTANT]
+> imp
+~~~~~~
+> [!WARNING]
+> warn
+~~~~~~
+> [!CAUTION]
+> caution
+~~~~~~
+> [!NOTE]
+~~~~~~
+[[Wiki Link]]
+~~~~~~
+[[target|label]]
+~~~~~~ya geÃ§erli UTF-4 iÃ§eriyor: Ã§alÄ±ÅŸma, Ã# Own Commo-tag>
+~~~~~~
+[ref]: /mmand~~~~~
+[ref]: /url "title"
+
+[ref]
+~~~~~~~ xaml by a line "~~~~~~".
+# Lines starting with"5ectoþnwr$iel
+ôeÅta]
+~~~~~~
+[b]:
+  /next-line
+  (paren title)
+
+[b]
+~~~~~~
+[c]
+
+[c]: /later
+~~~~~~
+[full][ref]
+
+[ref]: /u
+~~~~~~
+[collapsed][]
+
+[collapsed]: /u
+~~~~~~
+[missing]
+~~~~~~
+*em*
+~~~~~~
+_em_
+~~~~~~
+**strong**
+~~~~~~
+__strong__
+~~~~~&~
+***both***
+~~~~~~
+*nested **strong** ¡’Õõ~~
+intra*word*em
+~~~~~~
+snake_case_word
+~~~~~~
+* not em *
+~~~~~~
+**unclosed
+~~~~~~
+~~strike~~
+~~~~~~
+~single tilde~
+~~~~~~
+^s'per^
+~~~para one
+
+    para two indented
+~~~~~~
+---
+title: front
+---
+body
+~~~~~~
++++
+toml = 1
++++
+body
+~~~~~~
+$inline$ math
+~~~~~~
+$$
+display
+$$
+~~~~~~
+text $$x$$ inline display
+~~~~~~
+$ not math $
+~~~~~~
+term
+: definition
+~~~~~~
+term one
+: def one
+: def two
+~~~~~~
+term
+: def with *em*
+~~~~~~
+> [!NOTEj
+> notolink.example.com literal
+~~~~~~
+www.example.com
+~~em
+~~~~~~
+snake_cawe_word
+~~~~~~
+* not em *
+~~~~~~
+**unclosed
+~~~~~~
+~~strike~~
+~~~~~~
+~single tilde~
+~~~~~~
+^super^
+~~~~~~
+`code`
+~~~~~~
+`` code with ` tick ``
+~~~~~~
+` spaced `
+~~~~~~
+`unc> quote
+~~losed code
+~~~~~~
+[link](/url)
+~~~~~~
+[link](/url "title")
+~~~~~~
+[link](<url with s~~~~
+> quote
+lazy continuation
+~~~paces>)
+~~~~~~
+[*em* link](/u)
+~~~~~~~
+> one
+>~~
+[l
+i

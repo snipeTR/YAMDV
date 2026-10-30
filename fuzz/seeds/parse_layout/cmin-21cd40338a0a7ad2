@@ -1,0 +1,219 @@
+# “ú–‚Ì•¦‘‚Å‚·B•¶šƒR[ƒh‚Ì©“®”»’è‚ª³‚µ‚­“®ì‚·‚é‚©samŠp‚‚# Own CommonMark/GFM test vectors (original). One vector per block separated by a line ]: /u
+
+[ref   label]
+~~~~~~
+[a]: <with spgce> 'single'
+
+[a]
+~~~~~~
+[b]:ctors (original). One vector per block separated by a line ]: /u
+
+[ref   label]
+~~~~~~
+[a]: <movewith space> 'single'
+
+[a]
+~~~~~~
+[b]:
+  /next-line
+  (paren title)
+
+[b]
+~~~~~~
+[c]
+
+[c]: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX# Résumé
+
+Le garçon 1a mangé une crème brûlée é de la fenêtreÏ Où [ref   label]
+~~~~~~
+[a]: <movewith space> 'single'
+
+[a]
+~~~~~~
+[b]:
+  /next-line
+  (paren title)
+
+[b]
+~~~~~~
+<<<<<<<<<<<<<<<<<<<<XXXXXX<<<<<<<<<<<<<<<<<<<<<<<<<<<XXXXXXXXXXXXXXX/later
+~~~~~~
+[fuCommonMark/GFM test vector<<s (original<!). One vector  le clock separated by a line "~ Lines stastin¿ÿÿÿÿÿÿÿR-ÿÿÿÿ/R-F
+"CR1LF
+
+l#"CR2LF
+line<açade,  h
+"
+  /next-line
+  (paren title)
+
+[b]
+~~~~~~
+[c]
+
+[c]: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX# Résumé
+
+Le garçon a mangé une crème¿ÿÿÿÿÿÿÿR-ÿÿÿÿ/R-F
+"CR2LF
+
+l#"CR2LF
+line o brûlée é de la fenêtreÏ Où est le château ? Ça coûte très che:r.
+Die Straße in München ist scXXXXXXXXXXXXXXXXXXXhşn, un. Naïve f<<<<<<<<<<<<<<<<<<<<<<<<<<<<<XXXXXX<<<<<<<<<<<<<<<<<<<<<<<<<<<XXXXXXXXXXXXXXX/later
+~~~~~~
+[fuCommone
+line twoÿ¿ÿÿùne one
+line twoÿ¿ÿÿÿÿÿÿÿR-ÿÿÿÿ/R-F
+"CR2LF
+
+line one
+li'ne twoÿ¿ÿÿnMark/GFM test vector<<s (origina~~~~~
+[b]:
+  /next-line
+  (paren title)
+
+[b]
+~~~~~~
+<<<<<<<<<<<<<<<<<<<<XXXXXX<<<<<<<<<<<<<<<<<<<<<<<<<<<XXXXXXXXXXXXXXX/later
+~~~~~~
+[fuCommonMark/GFM test vector<<s (original<!). One next-line
+  (paren tÅitle)
+
+[b]
+~~~~~~
+[c]
+
+[c]: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX# Résumé
+
+Le µ¡©ğ£ÎÒÃ‚ÄAgarço# Own CommonMark/GFM test vectors (original). One vector per block separated by a line ]: /u
+
+[ref   label]
+~~~~~~
+[a]: <with spgce> 'single'
+
+[a]
+~~~~~~
+[b]:ctors by a line ]: /u
+
+[ref   label]
+~~~~~~
+[a]: <wi (origina~~~~~
+[b]:
+  /next-line
+  (paren title)
+
+[b]
+~~~~~~
+<<<<<<<<<<<<<<<<<<<<XXXXXX<<<<<<<<<<<<<<<<<<<<<<<<<<<XXXXXXXXXXXXXXX/later
+XXX/later
+~~~~~~
+[fuCommonMark/GFM test vector<<s (original<!). One vector  le clock separated by a line "~ Lines stastin¿ÿÿÿÿÿÿÿR-ÿÿÿÿ/R-F
+"CR1LF
+
+l#"CR2LF
+line<açade,  h
+"
+  /next-line
+  (paren tÅitle)
+
+[b]
+~~~~~~
+[c]
+
+[c]: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX# Résumé
+
+Le µ¡©ğ£ÎÒÃ‚ÄAgarço# Own CommonMark/GFM test vectors (original). One vector per block separated by a line ]: /u
+
+[ref   label]
+~~~~~~
+[a]: <with spgce> 'single'
+
+[a]
+~~~~~~
+[b]:ctors by a line ]: /u
+
+[ref   label]
+~~~~~~
+[a]: <wi (origina~~~~~
+[b]:
+  /next-line
+  (paren title)
+
+[b]
+~~~~~~
+<<<<<<<<<<<<<<<<<<<<XXXXXX<<<<<<<<<<<<<<<<<<<<<<<<<<<XXXXXXXXXXXXXXX/later
+~~~~~~
+[fuCommonMark/GFM test vector<<s (original<!). One vector  le clock separated by a line "~ Lines stastin¿ÿÿÿÿÿÿÿR-ÿÿÿÿ/R-F
+"CR1LF
+
+l#"CR2LF
+line<açade,  h
+"
+  /next-line
+  (paren tÅitle)
+
+[b]
+~~~~~~
+[c]
+
+[c]: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX# Résumé
+
+Le µ¡©ğ£ÎÒÃ‚ÄAgarço# Own CommonMark/GFM test vectors (original). One vector per block separated by a line ]: /u
+
+[ref   label]
+~~~~~~
+[a]: <with spgce> 'single'
+
+[a]
+~~~~~~
+[b]:ctors by a line ]: /u
+
+[ref   label]
+~~~~~~
+[a]paren title)
+
+[b]
+~~~~~~
+<<<<<<<<<<<<<<<<<<<<XXXXXX<<<<<<<<<<<<<<<<<<<<<<<<<<<XXXXXXXXXXXXXXX/later
+~~~~~~
+[fuCommonMark/GFM test vector<<s (original<!). One vector  le clock separated by a line "~ Lines stastin¿ÿÿÿÿÿÿÿR-ÿÿÿÿ/R-F
+"CR1LF
+
+l#"CR2LF
+line<açade,  h
+"
+  /next-line
+  (paren title)
+
+[b]
+~~~~~~
+[c]
+
+[c]: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX# Résumé
+
+Le garçon a mangé une crème¿ÿÿÿÿÿÿÿR-ÿÿÿÿ/R-F
+"CR2LF
+
+l#"CR2LF
+line o brûlée é de la fenêtreÏ Où est le château ? Ça coûte très che:r.
+Die Straße in München ist scXXXXXXXXXXXXXXXXXXXhşn, un. Naïve f<<<<<<<<<<<<<<<<<<<<<<<<<<<<<XXXXXX<<<<<<<<<<<<<<<<<<<<<<<<<<<XXXXXXXXXXXXXXX/later
+~~~~~~
+[fuCommone
+line+twoÿ¿ÿÿÿne one
+line twoÿ¿ÿÿÿÿÿÿÿR-ÿÿÿÿ/R-F
+"CR2LF
+
+line one
+li'ne twoÿ¿ÿÿnMark/GFM test vector<<s (origina~~~~~
+[b]:
+  /next-line
+  (paren title)
+
+[b]
+~~~~~~
+<<<<<<<<<<<<<<<<<<<<XXXXXX<<<<<<<<<<<<<<<<<<<<<<<<<<<XXXXXXXXXXXXXXX/later
+~~~~~~
+[fuCommonMark/GFM test vector<<s (original<!). One vector  le clock separated by a% line "~ Lines stasi
+odéjà 
+lvu
+.iline
+be o

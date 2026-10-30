@@ -1,0 +1,8 @@
+* text=auto eol=lf
+tests/corpus/** -text
+*.png binary
+*.ico binary
+*.res binary
+docs/prompts/** -text
+fuzz/seeds/** -text
+tests/fixtures/tr-1254.md -text

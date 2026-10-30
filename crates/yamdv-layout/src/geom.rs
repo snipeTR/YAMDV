@@ -1,0 +1,126 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+//! Geometry.
+
+/// Axis-aligned rectangle in DIPs.
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
+pub struct Rect {
+    /// Left.
+    pub x: f32,
+    /// Top.
+    pub y: f32,
+    /// Width.
+    pub w: f32,
+    /// Height.
+    pub h: f32,
+}
+
+impl Rect {
+    /// New rectangle.
+    pub const fn new(x: f32, y: f32, w: f32, h: f32) -> Self {
+        Self { x, y, w, h }
+    }
+
+    /// Right edge.
+    pub fn right(&self) -> f32 {
+        self.x + self.w
+    }
+
+    /// Bottom edge.
+    pub fn bottom(&self) -> f32 {
+        self.y + self.h
+    }
+
+    /// Intersection (empty rectangles have zero width/height).
+    pub fn intersect(&self, o: &Self) -> Self {
+        let x = self.x.max(o.x);
+        let y = self.y.max(o.y);
+        let r = self.right().min(o.right());
+        let b = self.bottom().min(o.bottom());
+        Self::new(x, y, (r - x).max(0.0), (b - y).max(0.0))
+    }
+    /// Does `o` lie completely inside?
+    pub fn contains_rect(&self, o: &Self) -> bool {
+        o.x >= self.x && o.y >= self.y && o.right() <= self.right() && o.bottom() <= self.bottom()
+    }
+    /// Do the rectangles overlap?
+    pub fn overlaps(&self, o: &Self) -> bool {
+        self.x < o.right() && o.x < self.right() && self.y < o.bottom() && o.y < self.bottom()
+    }
+    /// Translated copy.
+    pub fn offset(&self, dx: f32, dy: f32) -> Self {
+        Self {
+            x: self.x + dx,
+            y: self.y + dy,
+            ..*self
+        }
+    }
+
+    /// Contains the point.
+    pub fn contains(&self, x: f32, y: f32) -> bool {
+        x >= self.x && x < self.right() && y >= self.y && y < self.bottom()
+    }
+}
+
+/// Band buffer cap in bytes (P-12).
+pub const BAND_CAP_BYTES: usize = 524_288;
+
+/// Band height in rows for a band `width_px` wide: `clamp(524288 / (4 × width_px), 32, 128)`.
+pub fn band_rows(width_px: i32) -> i32 {
+    let w = usize::try_from(width_px.max(1)).unwrap_or(1);
+    i32::try_from((BAND_CAP_BYTES / (4 * w)).clamp(32, 128)).unwrap_or(32)
+}
+
+/// Clears the first `rows` rows (`stride` bytes each) of a reused band buffer to transparent
+/// black before the next band is drawn (ADR-0025: one DIB serves every band, so a band that
+/// draws nothing, e.g. below a diagram's real height, must not show the previous band again).
+pub fn reset_band(buf: &mut [u8], stride: usize, rows: usize) {
+    let n = stride.saturating_mul(rows).min(buf.len());
+    if let Some(b) = buf.get_mut(..n) {
+        b.fill(0);
+    }
+}
+
+#[cfg(test)]
+mod band_tests {
+    use super::*;
+
+    /// The fullscreen-viewer repeat (prompt 023): a reused band buffer that is not reset
+    /// copies the last drawn band into every band below the content.
+    #[test]
+    fn reused_band_does_not_repeat_below_content() {
+        let (w, h_px, rows) = (4usize, 100usize, 32usize);
+        let stride = w * 4;
+        let mut band = vec![0u8; stride * rows];
+        let mut out = vec![0u8; stride * h_px];
+        let mut y = 0usize;
+        while y < h_px {
+            let bh = rows.min(h_px - y);
+            reset_band(&mut band, stride, bh);
+            if y == 0 {
+                band[..stride * bh].fill(0xAB); // content only in the first band
+            }
+            out[y * stride..(y + bh) * stride].copy_from_slice(&band[..stride * bh]);
+            y += bh;
+        }
+        assert!(out[..stride * rows].iter().all(|&b| b == 0xAB));
+        assert!(
+            out[stride * rows..].iter().all(|&b| b == 0),
+            "band repeated below content"
+        );
+        let mut b = vec![7u8; 10];
+        reset_band(&mut b, 4, 9);
+        assert_eq!(b, vec![0; 10]);
+    }
+
+    #[test]
+    fn band_cap() {
+        for (w, rows) in [(1000, 128), (1920, 68), (3840, 34), (7680, 32)] {
+            assert_eq!(band_rows(w), rows, "width {w}");
+            let bytes = usize::try_from(w * band_rows(w) * 4).unwrap_or(0);
+            // ≤ 512 KiB except where the 32-row floor applies beyond 4096 px.
+            if w <= 4096 {
+                assert!(bytes <= BAND_CAP_BYTES, "{w}: {bytes}");
+            }
+        }
+    }
+}

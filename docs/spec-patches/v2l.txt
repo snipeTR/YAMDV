@@ -1,0 +1,8 @@
+# Spec patch of prompt 022 (owner micro change 2026-10-30: edit-mode toolbar tint).
+
+=== P-60 docs/UI_SPEC.md INSERT_AFTER
+--- anchor
+- A thin bar directly under the title bar, **height 32 px**, background `chrome_bg`; the document starts below it. Hidden in F11, in the fullscreen image / diagram viewers and in the mind map, and when `toolbar.visible` is off.
+--- new
+- While Live edit (F2) or Split edit (F3) is on, the bar background is the token `toolbar_edit_bg`: the scheme's background blended toward a muted red, so editing is visible at a glance. Light: 7 % toward `#C83232` (barely-there red, e.g. `#FFFFFF` → `#FBF1F1`); dark: 47 % toward `#5A1A24` (dark burgundy, e.g. `#1E1E1E` → `#3A1C21`). It works for every scheme; hover / pressed overlays and the separator are unchanged; an "on" icon (e.g. Live / Split) uses `accent`, or `text` where `accent` would fall below 3:1 on its fill over the tint. High Contrast uses the system colors with no tint.
+=== end

@@ -1,0 +1,27 @@
+sequenceDiagram
+  title: Login floFFFct
+  opt
+  Note over b:
+  actor Upt
+  Note over b:
+  actor U aspant B FFFFFFFFFFFFFFFFFFFFct  %B FFFFFFFFFFFFFFFFFFFFctser
+  Note over b:
+  actor U as User
+ 
+  opt
+  Note over b:
+  actor U as UsFF as
+  %%{autonumbe(rs-x opt
+  Note over b:
+  actor U aspant B FFFFFFFFFFFFFFFFFFFFct  %B FFFFFFFFFFFFFFFFFFFFct
+  opt
+  Note over b:
+  actor U as User
+  Note over b:
+  actor U as User
+ 
+  opt
+  Note over b:
+  actor U as UsFF<FFFFct
+  opt
+  Noer

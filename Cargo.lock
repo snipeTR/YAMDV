@@ -632,7 +632,7 @@ checksum = "5b3dc8af474f516a851ff4bd12db780f948b9250ad37211e4eec0bccea54e01b"
 
 [[package]]
 name = "spikes"
-version = "2.1.0"
+version = "2.1.1"
 dependencies = [
  "tiny-skia",
  "windows",
@@ -915,7 +915,7 @@ dependencies = [
 
 [[package]]
 name = "xtask"
-version = "2.1.0"
+version = "2.1.1"
 dependencies = [
  "lopdf",
  "object",
@@ -927,14 +927,14 @@ dependencies = [
 
 [[package]]
 name = "yamdv-app"
-version = "2.1.0"
+version = "2.1.1"
 dependencies = [
  "yamdv-platform-win",
 ]
 
 [[package]]
 name = "yamdv-core"
-version = "2.1.0"
+version = "2.1.1"
 dependencies = [
  "chardetng",
  "encoding_rs",
@@ -944,7 +944,7 @@ dependencies = [
 
 [[package]]
 name = "yamdv-editor"
-version = "2.1.0"
+version = "2.1.1"
 dependencies = [
  "encoding_rs",
  "proptest",
@@ -956,7 +956,7 @@ dependencies = [
 
 [[package]]
 name = "yamdv-export"
-version = "2.1.0"
+version = "2.1.1"
 dependencies = [
  "lopdf",
  "pdf-writer",
@@ -968,11 +968,11 @@ dependencies = [
 
 [[package]]
 name = "yamdv-highlight"
-version = "2.1.0"
+version = "2.1.1"
 
 [[package]]
 name = "yamdv-layout"
-version = "2.1.0"
+version = "2.1.1"
 dependencies = [
  "pulldown-cmark",
  "unicode-segmentation",
@@ -984,11 +984,11 @@ dependencies = [
 
 [[package]]
 name = "yamdv-math"
-version = "2.1.0"
+version = "2.1.1"
 
 [[package]]
 name = "yamdv-mermaid"
-version = "2.1.0"
+version = "2.1.1"
 dependencies = [
  "yamdv-core",
  "yamdv-ui",
@@ -996,7 +996,7 @@ dependencies = [
 
 [[package]]
 name = "yamdv-platform-win"
-version = "2.1.0"
+version = "2.1.1"
 dependencies = [
  "miniz_oxide 0.9.1",
  "pdf-writer",
@@ -1017,14 +1017,14 @@ dependencies = [
 
 [[package]]
 name = "yamdv-svg"
-version = "2.1.0"
+version = "2.1.1"
 dependencies = [
  "tiny-skia",
 ]
 
 [[package]]
 name = "yamdv-ui"
-version = "2.1.0"
+version = "2.1.1"
 dependencies = [
  "yamdv-core",
 ]

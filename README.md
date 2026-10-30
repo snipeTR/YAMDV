@@ -5,9 +5,19 @@
 A native Windows Markdown viewer and editor written from scratch in Rust. Reading first, fully
 offline, small (one `yamdv.exe`, a few MiB of working set), no runtime, no installer framework.
 
+## Download
+
+**[⬇ Download the latest version](https://github.com/snipeTR/YAMDV/releases/latest)** ·
+[all releases](https://github.com/snipeTR/YAMDV/releases)
+
+Get `YAMDV-<version>-win-x64.zip` from the release page. It is portable: unzip it anywhere and run
+`yamdv.exe` (Windows 10/11 x64, no installer, no admin rights). The SHA-256 of the zip is in the
+`.zip.sha256` file next to it and in the release notes. Turkish user guide:
+[docs/KULLANIM_KILAVUZU.md](docs/KULLANIM_KILAVUZU.md) (also in the zip).
+
 ![YAMDV showing a document with the outline sidebar](tests/golden/v1a/doc-sidebar-light.png)
 
-**Version 2.1.0.** Features:
+**Version 2.1.1.** Features:
 
 - **Reading:** CommonMark + GFM (tables, task lists, footnotes, callouts, `<details>`), 30+ code
   lexers, native math (with macros) and Mermaid (flowchart, sequence, gantt, pie, state, class,

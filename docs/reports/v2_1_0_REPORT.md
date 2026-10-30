@@ -29,7 +29,7 @@ Owner 2026-10-30 23:20 UTC+3: "issues deki herşeyi inşaa et. kodu güncelle" �
 ## CI and release
 - PR #102, CI run 41127007456 green (build job, A-12), squash-merged as a99c849c (tree == green head 4a420c02).
 - `chore(release): v2.1.0` 24228e6a, tag v2.1.0, release run 41127800860 green.
-- Draft (not published): https://github.com/abuzer1495/YAMDV/releases/tag/untagged-8047eeb37b633c360e0e
+- Draft (not published): draft `untagged-8047eeb37b633c360e0e` (previous repository)
 - `YAMDV-2.1.0-win-x64.zip`, 1,850,585 B, SHA-256
   56b44f0875b6d2a935a991ca32bd14bfa529bf95f47dae2abfc511049099f524 (matches the .sha256 asset).
 - `yamdv.exe` 3,595,264 B ≤ B-SIZE 3,600,000 (headroom 4,736 B; v2.0.3 was 3,547,648).

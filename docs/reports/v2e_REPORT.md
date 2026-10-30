@@ -1,8 +1,8 @@
 # V2-E report: editing plus (prompt 015)
 
-Status: **merged** as a9a9bc0 (squash of PR #84, https://github.com/abuzer1495/YAMDV/pull/84). The merge title has no `[skip ci]`; the tree equals the green head f4b19f4.
-CI: one run, 40000635873 (https://github.com/abuzer1495/YAMDV/actions/runs/40000635873), **green**; no fix push. Tag `phase-v2e` → a9a9bc0, pushed (no release this phase). Issues #43 (FUT-45), #17 (FUT-12), #18 (FUT-15) closed.
-v1.2.0 (F-25): draft https://github.com/abuzer1495/YAMDV/releases/tag/untagged-cd2b602efd39746f47e9, `YAMDV-1.2.0-win-x64.zip` SHA-256 `3f0de83ec3dbefb2cb6cd114d01a0b4eee5ab78c71c3f30f2fdcab7d07ad9fea`; still a draft.
+Status: **merged** as a9a9bc0 (squash of PR #84). The merge title has no `[skip ci]`; the tree equals the green head f4b19f4.
+CI: one run, 40000635873, **green**; no fix push. Tag `phase-v2e` → a9a9bc0, pushed (no release this phase). Issues #43 (FUT-45), #17 (FUT-12), #18 (FUT-15) closed.
+v1.2.0 (F-25): draft `untagged-cd2b602efd39746f47e9` (previous repository), `YAMDV-1.2.0-win-x64.zip` SHA-256 `3f0de83ec3dbefb2cb6cd114d01a0b4eee5ab78c71c3f30f2fdcab7d07ad9fea`; still a draft.
 
 ## 1. Acceptance criteria
 | AC | Status | Evidence |

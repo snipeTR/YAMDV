@@ -13,7 +13,7 @@
 ## 1. Review of V2-B — accepted
 - **CI:** run 39863513532 is green. All 32 driver scripts and every gate pass: M0 2.36 MiB, M1 4.84 MiB, T7 0.
 - **Cancel fix accepted:** "Microsoft Print to PDF" writes the file after the job is cancelled, and this is now handled. Keep the cancel check in `export-progress`.
-- **Repository:** the owner moved it to **github.com/abuzer1495/YAMDV**, where Actions minutes are available again. A-9 below ends A-8.
+- **Repository:** the owner moved it to another GitHub account, where Actions minutes are available again. A-9 below ends A-8.
 
 ### 1.1 Owner notes (only if attached)
 The owner may paste notes from his manual checks (`OWNER_TEST.md`) below this prompt.
@@ -27,7 +27,7 @@ The owner may paste notes from his manual checks (`OWNER_TEST.md`) below this pr
 ## 2. Setup (by script; keep it cheap)
 1. **A-9.** Add A-9 to `docs/PROCESS.md` through the amendment mechanism:
 ```text
-A-9 CI is back (owner decision, 2026-10-23). The repository moved to https://github.com/abuzer1495/YAMDV, where GitHub Actions minutes are available. A-8 ends and A-7's CI rules apply again; where they differ from A-8, A-9 wins.
+A-9 CI is back (owner decision, 2026-10-23). The repository moved to another GitHub account, where GitHub Actions minutes are available (since 2026-10-31: https://github.com/snipeTR/YAMDV, A-13). A-8 ends and A-7's CI rules apply again; where they differ from A-8, A-9 wins.
 1. CI gates as in A-7: M0, M1, T4 typical warm and T7 (two-attempt retry rule). M0/M1 may grow by at most 0.3 MiB per phase. At most 3 new driver scripts and 4 new goldens per phase.
 2. Minute and token economy: one full CI run at the end of a phase plus at most one fix push. WIP pushes use [skip ci].
 3. Kept from A-8:
@@ -43,8 +43,8 @@ A-9 CI is back (owner decision, 2026-10-23). The repository moved to https://git
    - releases stay drafts.
 ```
 2. **New remote.**
-   - Run `git remote set-url origin https://github.com/abuzer1495/YAMDV.git` and check that `gh repo view` works.
-   - By script, replace `snipeTR/YAMDV` with `abuzer1495/YAMDV` in `README.md`, `docs/*` and `.github/*`. Leave `docs/prompts/` and `docs/reports/` unchanged; they are historical.
+   - Point `origin` at the new repository URL (`git remote set-url origin …`) and check that `gh repo view` works.
+   - By script, replace the old repository URL with the new one in `README.md`, `docs/*` and `.github/*`. Leave `docs/prompts/` and `docs/reports/` unchanged; they are historical.
 3. **Roadmap rules.** In `docs/ROADMAP_V2.md`, replace these two lines exactly:
    - `- Since V2-B there is no CI. The owner runs the Windows tests from a test pack (PROCESS A-8).` → `- From V2-C on, CI runs again (PROCESS A-9). The owner checks each release by hand.`
    - `- Version tags wait for the owner's OK.` → `- Version tags are set when CI is green; releases stay drafts until the owner publishes them.`

@@ -1,6 +1,6 @@
 # V2-H report (prompt 018: native PDF, interactive HTML, integrations, known bugs)
 
-Branch `phase/v2h-export` (base b365a9a) · PR: https://github.com/abuzer1495/YAMDV/pull/92 · CI: 40946180003 (red: cargo deny), 40947414162 (red, below) ·
+Branch `phase/v2h-export` (base b365a9a) · PR #92 · CI: 40946180003 (red: cargo deny), 40947414162 (red, below) ·
 **PARTIAL (§6): not merged, not tagged** — the one fix push is used; no further push.
 
 ## AC

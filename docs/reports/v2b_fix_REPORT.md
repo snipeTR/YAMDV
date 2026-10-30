@@ -1,5 +1,5 @@
 # YAMDV — V2-B fix report: startup crash, CI back on (A-9)
-Branch `fix/v2b-startup-crash`, PR #80, squash-merged as a5ebb9a, tag `phase-v2b-fix`. Repo abuzer1495/YAMDV (gh account abuzer1495).
+Branch `fix/v2b-startup-crash`, PR #80, squash-merged as a5ebb9a, tag `phase-v2b-fix`. Repo: the previous GitHub repository (moved to snipeTR/YAMDV on 2026-10-31).
 
 ## 1. Root cause
 The V2-B test pack exes were cross-built on Linux with cargo-xwin (lld-link). On Windows they exit with
@@ -24,12 +24,12 @@ The MSVC-built exes of the same commit start fine. This was shown on windows-lat
 ## 3. CI runs
 | Run | Result |
 |---|---|
-| [39846032458](https://github.com/abuzer1495/YAMDV/actions/runs/39846032458) | first run with CI back on: V2-B driver failures |
-| [39850233795](https://github.com/abuzer1495/YAMDV/actions/runs/39850233795) | xwin pack exes crash on both runners (proof); MSVC fine |
-| [39852373334](https://github.com/abuzer1495/YAMDV/actions/runs/39852373334) | diagnosis variants hung; cancelled |
-| [39857147395](https://github.com/abuzer1495/YAMDV/actions/runs/39857147395) | only failure: export-progress partial file after cancel |
-| [39860028614](https://github.com/abuzer1495/YAMDV/actions/runs/39860028614) | only failure: settings-panel single-pass noise (+152 KiB) |
-| [39863513532](https://github.com/abuzer1495/YAMDV/actions/runs/39863513532) | **green**: 32/32 driver scripts, goldens, gates, pack-exes, pack-smoke, pure |
+| 39846032458 | first run with CI back on: V2-B driver failures |
+| 39850233795 | xwin pack exes crash on both runners (proof); MSVC fine |
+| 39852373334 | diagnosis variants hung; cancelled |
+| 39857147395 | only failure: export-progress partial file after cancel |
+| 39860028614 | only failure: settings-panel single-pass noise (+152 KiB) |
+| 39863513532 | **green**: 32/32 driver scripts, goldens, gates, pack-exes, pack-smoke, pure |
 
 ## 4. Gates (run 39863513532, windows-latest)
 | ID | Value | Budget |

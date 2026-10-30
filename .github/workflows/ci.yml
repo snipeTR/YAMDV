@@ -355,6 +355,7 @@ jobs:
           New-Item -ItemType Directory -Force -Path "dist/$name" | Out-Null
           Copy-Item target/release/yamdv.exe, README.md, LICENSE, CHANGELOG.md "dist/$name/"
           Copy-Item docs/FUTURE.md "dist/$name/FUTURE.md"
+          Copy-Item README.tr.md, docs/KULLANIM_KILAVUZU.md "dist/$name/"
           cargo xtask notices "dist/$name/THIRD_PARTY_NOTICES.txt"
           if ($LASTEXITCODE -ne 0) { exit 1 }
           Compress-Archive -Path "dist/$name/*" -DestinationPath "dist/$name.zip" -Force

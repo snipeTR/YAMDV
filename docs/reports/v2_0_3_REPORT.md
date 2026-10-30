@@ -32,6 +32,6 @@ Status (2026-10-30 23:14 UTC+3): PR #101 merged (26d61865, tree = green head, F-
 | 41120467954 | tag v2.0.3 (ed9c825e) | release job **green** |
 
 ## Draft
-- https://github.com/abuzer1495/YAMDV/releases/tag/untagged-87842078c64793f6ba2e
+- draft `untagged-87842078c64793f6ba2e` (previous repository)
 - `YAMDV-2.0.3-win-x64.zip`, 1,825,185 B, SHA-256
   `7d818b20b516b49281d556a678387f5d5a14b7caa37da76281361b7302e71284` (downloaded and checked)

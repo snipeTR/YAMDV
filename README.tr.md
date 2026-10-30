@@ -6,9 +6,20 @@ Windows için Rust ile sıfırdan yazılmış, yerel bir Markdown görüntüleyi
 okuma; tamamen çevrimdışı, küçük (tek bir `yamdv.exe`, birkaç MiB çalışma belleği), çalışma
 zamanı (runtime) gerektirmez, kurulum altyapısı (installer framework) kullanmaz.
 
+## İndir
+
+**[⬇ En son sürümü indir](https://github.com/snipeTR/YAMDV/releases/latest)** ·
+[tüm sürümler](https://github.com/snipeTR/YAMDV/releases)
+
+Sürüm sayfasından `YAMDV-<sürüm>-win-x64.zip` dosyasını indirin. Taşınabilirdir: zip'i herhangi
+bir yere açıp `yamdv.exe`'yi çalıştırın (Windows 10/11 x64, kurulum ve yönetici izni gerekmez).
+Zip'in SHA-256 özeti yanındaki `.zip.sha256` dosyasında ve sürüm notlarındadır.
+**Türkçe kullanım kılavuzu:** [docs/KULLANIM_KILAVUZU.md](docs/KULLANIM_KILAVUZU.md) (zip'in
+içinde de var).
+
 ![Ana hat kenar çubuğuyla bir belgeyi gösteren YAMDV](tests/golden/v1a/doc-sidebar-light.png)
 
-**Sürüm 2.1.0.** Özellikler:
+**Sürüm 2.1.1.** Özellikler:
 
 - **Okuma:** CommonMark + GFM (tablolar, görev listeleri, dipnotlar, bilgi kutuları (callout),
   `<details>`), 30'dan fazla kod sözcük çözümleyicisi (lexer), yerleşik matematik (makrolarla) ve

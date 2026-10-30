@@ -1,6 +1,6 @@
 # YAMDV — Phase V2-C Report: transient UI and viewers (prompt 013)
 Prompt: `docs/prompts/013_V2C_TRANSIENT_UI_VIEWERS.md` (§1.1 skipped by owner instruction). Rules: PROCESS A-9 (CI back).
-Branch `phase/v2c-viewers`, PR #82, squash-merged as 3dc8157 (title `[skip ci]`, tree = PR head 9510db0), tagged `phase-v2c`. Remote: https://github.com/abuzer1495/YAMDV.
+Branch `phase/v2c-viewers`, PR #82, squash-merged as 3dc8157 (title `[skip ci]`, tree = PR head 9510db0), tagged `phase-v2c`. Remote: the previous GitHub repository (now snipeTR/YAMDV).
 Issues closed: #38 FUT-40 (PR keyword); #35 FUT-36, #13 FUT-06, #33 FUT-34, #39 FUT-41, #68 BUG-08 closed by hand, citing #82.
 
 ## 1. Acceptance criteria
@@ -12,11 +12,11 @@ Issues closed: #38 FUT-40 (PR keyword); #35 FUT-36, #13 FUT-06, #33 FUT-34, #39 
 | AC-4 gates, PR, issues, tag, report | done | gates below; PR #82 merged; 6 issues closed; `phase-v2c`; this file |
 
 ## 2. CI
-- Phase run (PR head 9e76508): https://github.com/abuzer1495/YAMDV/actions/runs/39916255630 — all green except doc goldens
+- Phase run (PR head 9e76508): run 39916255630 — all green except doc goldens
   `mermaid-light/dark-1.0` (size differs: BUG-08 keeps the 9-node LR flowchart at minimum scale, 14 px taller; intended).
-- Fix run (80590f9): https://github.com/abuzer1495/YAMDV/actions/runs/39919219757 — **green**, all jobs and gates.
+- Fix run (80590f9): run 39919219757 — **green**, all jobs and gates.
 - 9510db0 (`[skip ci]`) adds the footnote/image shell goldens from the fix-run artifact; nothing else.
-- v1.1.0 tag run: https://github.com/abuzer1495/YAMDV/actions/runs/39913154778 (green, on bd6acc6).
+- v1.1.0 tag run: run 39913154778 (green, on bd6acc6).
 
 ## 3. Gates (fix run = merged code, release exe, windows-2022)
 | Gate | V2-B | V2-C | Limit |
@@ -31,7 +31,7 @@ Issues closed: #38 FUT-40 (PR keyword); #35 FUT-36, #13 FUT-06, #33 FUT-34, #39 
 Driver scripts: 35/35 PASS (32 old + 3 new); doc, window/shell goldens and ACG matrix green. Exe: 2,919,936 B → 2,988,032 B = **+68,096 B**.
 
 ## 4. v1.1.0 draft release
-- https://github.com/abuzer1495/YAMDV/releases/tag/untagged-0d11771430dd96fbe710 (draft; owner publishes)
+- draft `untagged-0d11771430dd96fbe710` (previous repository) (draft; owner publishes)
 - Assets `YAMDV-1.1.0-win-x64.zip` + `.sha256`; SHA-256 `49d8372dfe0fc491d1a3ef4b6c0d7a965986d318be7eab1b4fa9084bd4180aec`
 - The old `v1.0.0-rc1` draft was built with cargo-xwin and is left alone by owner decision.
 

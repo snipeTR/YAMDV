@@ -46,7 +46,7 @@ Release: run 40968532258 (main, tests skipped by F-32) and 40968540125 (tag, rel
 #37 FUT-39, #22 FUT-21, #23 FUT-23, #16 FUT-10, #15 FUT-09, #24 FUT-25, #61–#67 BUG-01…07, #91 BUG-12.
 
 ## Release
-- Draft: https://github.com/abuzer1495/YAMDV/releases/tag/untagged-abac255acfbcc3379074 (v1.4.0, **not published**)
+- Draft: draft `untagged-abac255acfbcc3379074` (previous repository) (v1.4.0, **not published**)
 - `YAMDV-1.4.0-win-x64.zip` SHA-256 `cd0e5673e1b3749835714b17f6466fd0e08ed49261287dc8e74f9577d1d3b6ec`
 - Note: the CHANGELOG line "memory … back under budget" is true for the CI budget only; M1 is above 5.01 MiB.
 

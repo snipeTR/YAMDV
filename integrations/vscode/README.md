@@ -29,8 +29,8 @@ Needs Node.js 18+. The `.vsix` is not built in CI (see ADR-0028).
 cd integrations/vscode
 npm install            # typescript, @types/*, @vscode/vsce (dev only; nothing is bundled)
 npm test               # compiles and runs the launcher tests
-npm run package        # → yamdv-preview-2.1.0.vsix
-code --install-extension yamdv-preview-2.1.0.vsix
+npm run package        # → yamdv-preview-2.1.1.vsix
+code --install-extension yamdv-preview-2.1.1.vsix
 ```
 
 Or, for development, open this folder in VS Code and press F5 (Extension Development Host).

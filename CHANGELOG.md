@@ -6,6 +6,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.1] - 2026-10-31
+
+Documentation release; the program code is unchanged apart from the version number.
+
+### Added
+- Turkish user guide `docs/KULLANIM_KILAVUZU.md`: installation and portable use, opening files,
+  reading, themes, Live / Split Edit, Mermaid and visual flowchart editing, math, the toolbar,
+  export and print, mind map, jump list, the editor plugins, a keyboard shortcuts table, the
+  settings files and how to reset them, privacy and how to verify it, FAQ. Linked from both
+  READMEs and shipped in the release zip together with `README.tr.md`.
+- A Download / İndir section at the top of `README.md` and `README.tr.md` linking the release
+  page and the latest release.
+
+### Changed
+- The repository moved to https://github.com/snipeTR/YAMDV (A-13); references to the previous
+  account were removed from every file, including the stored prompts and reports.
+
 ## [2.1.0] - 2026-10-31
 
 The open issues (prompt 024): #86, #59, #26.

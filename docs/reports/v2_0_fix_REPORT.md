@@ -26,7 +26,7 @@ The v2.0.0 tag already existed (9417fece, draft unpublished), so these fixes are
 | 41109653090 | tag v2.0.1 (57170e53) | release job **green** |
 
 ## Draft
-- https://github.com/abuzer1495/YAMDV/releases/tag/untagged-d1fed091a1c7839c5829 (draft)
+- draft `untagged-d1fed091a1c7839c5829` (previous repository) (draft)
 - `YAMDV-2.0.1-win-x64.zip`, 1,820,834 B, SHA-256
   `6c1e5468cd4b250a24f3ed8e35ac40da3a78d7b160ba28637ee0479e7730574f` (downloaded and checked)
 

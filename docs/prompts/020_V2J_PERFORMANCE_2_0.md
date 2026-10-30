@@ -35,7 +35,7 @@
 3. **License: AGPL-3.0-or-later** (owner decision, 2026-10-30; closes DEC-01 #71).
    - **`LICENSE`:** the full official text of the GNU AGPL v3, unchanged.
    - **Crates:** `license = "AGPL-3.0-or-later"` in every workspace crate, and an SPDX header `// SPDX-License-Identifier: AGPL-3.0-or-later` in every source file (by script).
-   - **README and About:** "License: AGPL-3.0-or-later", plus the source URL `https://github.com/abuzer1495/YAMDV`, with the exact tag in About.
+   - **README and About:** "License: AGPL-3.0-or-later", plus the source URL `https://github.com/snipeTR/YAMDV`, with the exact tag in About.
    - **Third-party notices:** `cargo xtask notices` generates `THIRD_PARTY_NOTICES.txt` from `cargo metadata` and each dependency's license / copyright files. The file ships in the release zip.
    - **`cargo deny`:** the license policy allows only AGPL-3.0-compatible dependency licenses: MIT, Apache-2.0, BSD-2/3-Clause, ISC, Zlib, Unicode-3.0 / Unicode-DFS-2016, BSL-1.0, CC0-1.0, and MPL-2.0 (only without "Incompatible With Secondary Licenses"). List any other license in the report; do not add it silently.
 4. **HARD-05 #93 (S-PROC-08):** temp and staging paths must not come from environment variables. Use `SHGetKnownFolderPath(FOLDERID_LocalAppData)` → `YAMDV\tmp\<random>\`, created with `CREATE_NEW` and deleted on success, on failure and at exit. Apply P-55, and close #93.

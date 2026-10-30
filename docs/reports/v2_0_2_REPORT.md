@@ -34,6 +34,6 @@ Disabled controls are exempt from WCAG 1.4.11; they stay ≥ 2.8:1.
 | 41113091814 | tag v2.0.2 (7279dfad) | release job **green** |
 
 ## Draft
-- https://github.com/abuzer1495/YAMDV/releases/tag/untagged-50d5c5aaa03fac3f8b5f
+- draft `untagged-50d5c5aaa03fac3f8b5f` (previous repository)
 - `YAMDV-2.0.2-win-x64.zip`, 1,821,375 B, SHA-256
   `6b6ad8eac2135d1404e0159dbca45a4682010abd3aea8c13af80c031b371879b` (downloaded and checked)

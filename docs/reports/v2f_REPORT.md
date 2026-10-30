@@ -1,9 +1,9 @@
 # V2-F report: WYSIWYG F2 and table editing (prompt 016)
 
-Status: **merged** as 0a41b78 (squash of PR #85, https://github.com/abuzer1495/YAMDV/pull/85); title has no `[skip ci]`; F-24: tree equals the green head ff0955c.
+Status: **merged** as 0a41b78 (squash of PR #85); title has no `[skip ci]`; F-24: tree equals the green head ff0955c.
 CI: run 40017140073 (da51d9f) red only at window goldens (intended `live-block-light` change + 2 uncommitted V2-F shots); one fix push → run 40020890007 (ff0955c) **green**. Issues #41 (FUT-43), #42 (FUT-44) closed.
 Tags: `phase-v2f` → 0a41b78; `v1.3.0` → 47d68db `chore(release): v1.3.0` (empty, no `[skip ci]`). F-24: trees of 0a41b78 and 47d68db both equal the green head ff0955c.
-v1.3.0 draft: https://github.com/abuzer1495/YAMDV/releases/tag/untagged-0bdbd1df5a17b22b9c3a (tag run 40024306004, green) — `YAMDV-1.3.0-win-x64.zip` SHA-256 `1d4d08593055657d6189affb0107eae3975fe7ef1979b670369e7e110576351b`; still a draft (not published).
+v1.3.0 draft: draft `untagged-0bdbd1df5a17b22b9c3a` (previous repository) (tag run 40024306004, green) — `YAMDV-1.3.0-win-x64.zip` SHA-256 `1d4d08593055657d6189affb0107eae3975fe7ef1979b670369e7e110576351b`; still a draft (not published).
 
 ## 1. Acceptance criteria
 | AC | Status | Evidence |

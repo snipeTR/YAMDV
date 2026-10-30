@@ -3,7 +3,7 @@
 Status (2026-10-30 21:15 UTC+3): owner decision A-11 (18:26, "tamam ikonları ekle sürümü finalize edelim. bu final
 sürümü ben ve arkadaşım test edicez.") — toolbar added, v2.0.0 finalized as a **draft** release; §5.1 deferred.
 PR #96 squash-merged as 7c30adce (tree = green head 0e08353c, F-24); empty `chore(release): v2.0.0` 9417fece, tag
-`v2.0.0` (F-25); release run 41103415663 created the draft: https://github.com/abuzer1495/YAMDV/releases/tag/untagged-aa7a6d1df5dabdaf06d5
+`v2.0.0` (F-25); release run 41103415663 created the draft: draft `untagged-aa7a6d1df5dabdaf06d5` (previous repository)
 
 ## Runs
 | Run | Kind | Result |

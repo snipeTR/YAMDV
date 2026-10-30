@@ -205,7 +205,7 @@ A-8 No CI; the owner runs the Windows tests (owner decision, 2026-10-22). Applie
 
 **A-9 (Phase V2-C, prompt 013 §2 step 1; owner decision 2026-10-23).**
 ```text
-A-9 CI is back (owner decision, 2026-10-23). The repository moved to https://github.com/abuzer1495/YAMDV, where GitHub Actions minutes are available. A-8 ends and A-7's CI rules apply again; where they differ from A-8, A-9 wins.
+A-9 CI is back (owner decision, 2026-10-23). The repository moved to another GitHub account, where GitHub Actions minutes are available (since 2026-10-31: https://github.com/snipeTR/YAMDV, A-13). A-8 ends and A-7's CI rules apply again; where they differ from A-8, A-9 wins.
 1. CI gates as in A-7: M0, M1, T4 typical warm and T7 (two-attempt retry rule). M0/M1 may grow by at most 0.3 MiB per phase. At most 3 new driver scripts and 4 new goldens per phase.
 2. Minute and token economy: one full CI run at the end of a phase plus at most one fix push. WIP pushes use [skip ci].
 3. Kept from A-8:
@@ -251,3 +251,5 @@ A-12 (owner decision, 2026-10-31): the owner and a friend test every build by ha
 3. One CI run per change set. No fix push is needed unless the build itself breaks.
 4. Reports stay short (≤ 40 lines): what changed, the build status, the draft link + SHA-256.
 ```
+
+A-13 (owner decision, 2026-10-31): the repository moved to https://github.com/snipeTR/YAMDV; references to the old account were removed from all files, including the stored prompts and reports (an owner-ordered exception to keeping prompts verbatim).

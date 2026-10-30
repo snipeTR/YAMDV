@@ -26,11 +26,11 @@ Next action (owner): choose one. (a) Move both tags to a commit whose message ha
 | Mind map, large-1mb.md | — | 15,704 nodes, build 148 ms, +3,620 KiB PWS | report only |
 
 ## 3. CI
-- Run 1 (f05a7f8): https://github.com/abuzer1495/YAMDV/actions/runs/39927529395 (red: `tab-order` needed the heading fold stops, `keyboard-reach` walk wrapped, `files-favorites` timed out; `menu-light`, `top-v2c-footnote-light` goldens)
-- Fix run (ef7ad7e): https://github.com/abuzer1495/YAMDV/actions/runs/39931340336 (red: only `files-favorites`, last step)
-- Run 3 (af625d7, owner-approved): https://github.com/abuzer1495/YAMDV/actions/runs/39983230028 (red: only `export-progress.yds`, `cpu_delta_ms` 16 > 15; every other windows step green, pure crates green, pack/owner-kit jobs skipped)
-- Run 4 (db674fb, after A-10): https://github.com/abuzer1495/YAMDV/actions/runs/39987570191 (**green**: windows + pure crates; pack, owner-kit and release jobs skipped on PRs by design)
-- PR: https://github.com/abuzer1495/YAMDV/pull/83 (Closes #32 #9 #10 #14 #36 #53)
+- Run 1 (f05a7f8): run 39927529395 (red: `tab-order` needed the heading fold stops, `keyboard-reach` walk wrapped, `files-favorites` timed out; `menu-light`, `top-v2c-footnote-light` goldens)
+- Fix run (ef7ad7e): run 39931340336 (red: only `files-favorites`, last step)
+- Run 3 (af625d7, owner-approved): run 39983230028 (red: only `export-progress.yds`, `cpu_delta_ms` 16 > 15; every other windows step green, pure crates green, pack/owner-kit jobs skipped)
+- Run 4 (db674fb, after A-10): run 39987570191 (**green**: windows + pure crates; pack, owner-kit and release jobs skipped on PRs by design)
+- PR #83 (Closes #32 #9 #10 #14 #36 #53)
 
 ## 4. A-10 (owner override, 2026-10-23: "testleri azalt gereksiz test olmasın birleştir yinede")
 Recorded in PROCESS.md (via `docs/spec-patches/PROCESS_AMENDMENTS.md`). Removed or demoted tests:

@@ -2,7 +2,7 @@
 
 ## Goals (restated)
 - §2 setup: official A-9, roadmap lines, P-40…P-42, Font dialog-kind cleanup, v1.1.0 draft release from a
-  green main, test-v2b deleted (it no longer exists on abuzer1495/YAMDV: nothing to delete).
+  green main, test-v2b deleted (it no longer exists in the moved repository: nothing to delete).
 - §3: tooltip component, anchored popover (external-link Ask), banners, fullscreen viewers (image, Mermaid,
   table), heading folding, sup/sub/footnote-ref inline objects, BUG-08 minimum diagram scale.
 - Tests: 3 driver scripts (tooltips-banners, viewers, folding), 4 goldens, pure unit tests.

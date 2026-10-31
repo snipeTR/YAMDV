@@ -126,6 +126,8 @@ pub(crate) fn lex(spec: &Spec, state: State, line: &str, out: &mut Out) -> State
 }
 
 #[allow(clippy::too_many_lines)]
+// SAFETY/bounds: `c.i <= c.b.len()` is the cursor invariant; `idx` comes from enumerating the same table.
+#[allow(clippy::indexing_slicing)]
 fn lex_line(spec: &Spec, state: State, line: &str, out: &mut Out, jx: &mut Jsx) -> State {
     let mut c = Cur::new(line);
     // Resume a multi-line construct.

@@ -164,7 +164,7 @@ impl Win {
     fn pop_activate(&mut self, id: u32) {
         let Some(p) = self.tz.pop.take() else { return };
         match id {
-            POP_OPEN => sys::shell_open(&p.url),
+            POP_OPEN if !sys::shell_open(&p.url) => self.toast(Msg::LinkOpenFailed),
             POP_COPY if sys::copy_text(self.hwnd, &p.url) => self.toast(Msg::Copied),
             _ => {}
         }

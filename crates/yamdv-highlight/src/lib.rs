@@ -7,7 +7,7 @@
 #![forbid(unsafe_code)]
 // Byte-index scanning over ASCII delimiters: every index is checked against the line length
 // before use (see `Cur`); UTF-8 boundaries are kept by only splitting at ASCII bytes.
-#![allow(clippy::indexing_slicing)]
+// `indexing_slicing` is allowed per function, each with a `SAFETY/bounds:` note (prompt 022 §4).
 
 mod clike;
 mod jsx;

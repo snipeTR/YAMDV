@@ -43,6 +43,9 @@ pub(super) struct MmdSel {
     input: Option<LabelInput>,
     drag: Option<Connect>,
     hi: Option<u16>,
+    /// B3 (prompt 022): (body before, body after) a Tab-added node whose label editor is
+    /// open; committing the rename folds both into one undo step.
+    added: Option<(String, String)>,
 }
 
 /// Default label of a node added with Tab.
@@ -251,16 +254,30 @@ impl Win {
 
     /// Writes `new` (the whole rewritten fence body) to the buffer as one minimal splice.
     fn mmd_apply(&mut self, sh: &Shared, new: String) -> bool {
-        let Some((start, old)) = self.mmd().map(|m| (m.start, m.text.clone())) else {
+        self.mmd_apply_as(sh, new, None)
+    }
+
+    /// [`Self::mmd_apply`]; with `undo_to = Some(body)` the last undo step (which turned
+    /// `body` into the current text) is undone first, in the same edit, so the result is one
+    /// undo step from `body` (B3, prompt 022).
+    fn mmd_apply_as(&mut self, sh: &Shared, new: String, undo_to: Option<String>) -> bool {
+        let Some((start, cur)) = self.mmd().map(|m| (m.start, m.text.clone())) else {
             return false;
         };
+        let undo = undo_to.is_some();
+        let old = undo_to.unwrap_or(cur);
         let Some((a, b)) = yamdv_editor::diff_span(&old, &new) else {
             return false;
         };
         let ins = new.get(b.clone()).unwrap_or_default().to_string();
         let range = start + a.start..start + a.end;
         let caret = start + b.end;
-        self.with_ed(sh, |ed| ed.replace(range, &ins, caret));
+        self.with_ed(sh, |ed| {
+            if undo {
+                ed.undo();
+            }
+            ed.replace(range, &ins, caret);
+        });
         if let Some(m) = self.mmd_mut() {
             m.text = new;
         }
@@ -286,6 +303,7 @@ impl Win {
         if let Some(m) = self.mmd_mut() {
             m.drag = None;
             m.input = Some(LabelInput::new(&label));
+            m.added = None;
         }
         self.invalidate();
     }
@@ -298,6 +316,7 @@ impl Win {
         let Some(input) = m.input.take() else {
             return false;
         };
+        let added = m.added.take().filter(|(_, after)| *after == m.text);
         let (text, target) = (m.text.clone(), m.target);
         let Some(fe) = FlowEdit::new(&text) else {
             return false;
@@ -307,7 +326,11 @@ impl Win {
             Target::Edge(i) => fe.set_edge_label(i, input.text.trim()),
         };
         self.invalidate();
-        new.is_some_and(|n| n != text && self.mmd_apply(sh, n))
+        let Some(n) = new.filter(|n| *n != text) else {
+            return false;
+        };
+        // B3: "add node + rename" is ONE undo step: undo the add, then write the result.
+        self.mmd_apply_as(sh, n, added.map(|(before, _)| before))
     }
 
     /// Mouse down at content point (x, y) in an edit mode; `true` = handled (a diagram
@@ -390,6 +413,7 @@ impl Win {
                 input: None,
                 drag,
                 hi: None,
+                added: None,
             });
         }
         if drag.is_some() {
@@ -514,13 +538,15 @@ impl Win {
                 let fe = FlowEdit::new(&m.text)?;
                 if let Some((new, id)) = fe.add_node(from, NEW_LABEL) {
                     let i = FlowEdit::new(&new).and_then(|f| f.node_index(&id));
-                    if self.mmd_apply(sh, new)
+                    let before = m.text.clone();
+                    if self.mmd_apply(sh, new.clone())
                         && let Some(i) = i
                     {
+                        self.mmd_begin_edit(Some(NEW_LABEL));
                         if let Some(m) = self.mmd_mut() {
                             m.target = Target::Node(i);
+                            m.added = Some((before, new));
                         }
-                        self.mmd_begin_edit(Some(NEW_LABEL));
                     }
                 }
                 Some(None)

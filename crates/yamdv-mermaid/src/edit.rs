@@ -46,7 +46,7 @@ fn apply(src: &str, mut edits: Edits) -> String {
 }
 
 /// The text of a label between shape delimiters / pipes: quoted when it holds characters the
-/// parser treats as syntax; a line break becomes `<br>`.
+/// parser treats as syntax; a line break becomes `<br>`, `"` becomes `#quot;`.
 pub fn encode_label(text: &str) -> String {
     let one = text.replace("\r\n", "\n").replace('\r', "\n");
     let special = one.trim() != one
@@ -74,7 +74,21 @@ pub fn encode_label(text: &str) -> String {
                     | '.'
             )
         });
-    let body = one.replace('"', "'").replace('\n', "<br>");
+    // B3 (prompt 022): `"` becomes the entity `#quot;` (exact round trip); a `#` that would
+    // read as an entity, and a `<` that would read as `<br>`, are escaped the same way.
+    let mut body = String::with_capacity(one.len() + 8);
+    for (i, c) in one.char_indices() {
+        let tail = one.get(i..).unwrap_or("");
+        match c {
+            '"' => body.push_str("#quot;"),
+            '#' if crate::entity_at(tail).is_some() => body.push_str("#35;"),
+            '<' if tail.get(..3).is_some_and(|t| t.eq_ignore_ascii_case("<br")) => {
+                body.push_str("#lt;");
+            }
+            '\n' => body.push_str("<br>"),
+            c => body.push(c),
+        }
+    }
     if special { format!("\"{body}\"") } else { body }
 }
 
@@ -214,17 +228,40 @@ impl FlowEdit {
         Some(self.append(&format!("{}[{enc}]", node.id)))
     }
 
-    /// Sets edge `e`'s label (empty removes it). Every edge drawn by the same operator
-    /// (`A & B --> C`) shares the label.
+    /// Sets edge `e`'s label (empty removes it). B3 (prompt 022): when the operator draws
+    /// several edges (`A & B --> C`), edge `e` is first split into its own statement
+    /// (`A -->|text| C`, appended last) so the other edges keep their label.
     pub fn set_edge_label(&self, e: usize, text: &str) -> Option<String> {
         let edge = self.flow.edges.get(e)?;
-        let (_, _, op) = self.op_of(e)?;
+        let (st, k, op) = self.op_of(e)?;
         let text = text.trim();
         let plain = op_text(edge.line, edge.head, edge.tail, edge.len);
         let piped = |t: &str| {
             let enc = encode_label(t);
             format!("|{enc}|")
         };
+        let shared = match &st.kind {
+            StKind::Chain { groups, .. } => {
+                groups.get(k).map_or(0, Vec::len) * groups.get(k + 1).map_or(0, Vec::len) > 1
+            }
+            _ => false,
+        };
+        if shared {
+            if edge.label.as_deref().unwrap_or("") == text {
+                return Some(self.src.clone());
+            }
+            let (a, b) = (
+                self.flow.nodes.get(edge.from)?,
+                self.flow.nodes.get(edge.to)?,
+            );
+            let lab = if text.is_empty() {
+                String::new()
+            } else {
+                piped(text)
+            };
+            let rest = FlowEdit::new(&self.remove(&HashSet::new(), &HashSet::from([e])))?;
+            return Some(rest.append(&format!("{} {plain}{lab} {}", a.id, b.id)));
+        }
         let edit = match &op.label {
             Some((r, true)) if !text.is_empty() => (r.clone(), encode_label(text)),
             Some(_) if text.is_empty() => (op.full.clone(), plain),

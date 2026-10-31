@@ -290,6 +290,24 @@ fn create_process(exe: &str, args: &[String]) -> bool {
     ok
 }
 
+/// S7 (prompt 022): `Some(approval)` (`path|fingerprint`) when the custom editor `exe` with
+/// argument template `args` has not been approved in exactly this form (first use, or its
+/// path / arguments / file changed). `None` when approved or when it cannot start anyway.
+pub fn custom_needs_confirm(exe: &str, args: &str, approved: &str) -> Option<String> {
+    use std::os::windows::fs::MetadataExt;
+    if cmdline::forbidden_target(exe) {
+        return None;
+    }
+    let m = std::fs::metadata(exe)
+        .ok()
+        .filter(std::fs::Metadata::is_file)?;
+    let a = format!(
+        "{exe}|{}",
+        cmdline::editor_fingerprint(exe, args, m.len(), m.last_write_time())
+    );
+    (a != approved).then_some(a)
+}
+
 /// Opens `file` at `line` in the configured or detected editor (R-EXT-01…03).
 pub fn open_in_editor(
     file: &str,

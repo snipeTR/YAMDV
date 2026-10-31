@@ -3,16 +3,20 @@
 //! formatting stripped to plain text, formula-injection guard.
 
 // Node indices come from the detail tree's own arena (in bounds by construction).
-#![allow(clippy::indexing_slicing)]
+// `indexing_slicing` is allowed per function, each with a `SAFETY/bounds:` note (prompt 022 §4).
 
 use yamdv_core::doc::Document;
 use yamdv_core::doc::detail::{Detail, NodeKind, RunKind};
 
 /// One CSV field (RFC 4180): quoted when it contains `"`, `,`, CR or LF; with `guard`, a cell
-/// starting with `=`, `+`, `-`, `@`, tab or CR is prefixed with `'` (S-EXP-04).
+/// starting with tab or CR, or whose first non-whitespace character is `=`, `+`, `-` or `@`
+/// (` =1+1` is still a formula in spreadsheets; S8, prompt 022), is prefixed with `'`
+/// (S-EXP-04).
 pub fn field(cell: &str, guard: bool, out: &mut String) {
     let mut v = String::with_capacity(cell.len() + 1);
-    if guard && cell.starts_with(['=', '+', '-', '@', '\t', '\r']) {
+    if guard
+        && (cell.starts_with(['\t', '\r']) || cell.trim_start().starts_with(['=', '+', '-', '@']))
+    {
         v.push('\'');
     }
     v.push_str(cell);
@@ -55,6 +59,8 @@ fn cell_text(doc: &Document, d: &Detail, i: usize) -> String {
 
 /// Plain-text cells of table node `t` in detail tree `d`.
 /// A `rowspan` cell (BUG-05) leaves empty fields below it so every row keeps the grid.
+// SAFETY/bounds: node ids come from the arena's own child lists, so they are < `d.nodes.len()`.
+#[allow(clippy::indexing_slicing)]
 pub fn table_rows(doc: &Document, d: &Detail, t: usize) -> Vec<Vec<String>> {
     let mut busy: Vec<usize> = Vec::new();
     d.children(t)
@@ -92,6 +98,8 @@ pub fn table_rows(doc: &Document, d: &Detail, t: usize) -> Vec<Vec<String>> {
 }
 
 /// The table of top-level block `bi` containing source offset `at` (or its first table).
+// SAFETY/bounds: node ids come from the arena's own child lists, so they are < `d.nodes.len()`.
+#[allow(clippy::indexing_slicing)]
 pub fn table_at(doc: &Document, bi: usize, at: u32) -> Option<Vec<Vec<String>>> {
     let d = doc.detail_uncached(bi);
     let tables: Vec<usize> = (0..d.nodes.len())
@@ -108,6 +116,26 @@ pub fn table_at(doc: &Document, bi: usize, at: u32) -> Option<Vec<Vec<String>>> 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn s8_formula_guard_after_whitespace() {
+        let f = |c: &str| {
+            let mut o = String::new();
+            field(c, true, &mut o);
+            o
+        };
+        assert_eq!(f("=1+1"), "'=1+1");
+        assert_eq!(f("  =HYPERLINK(1)"), "'  =HYPERLINK(1)");
+        assert_eq!(f("\u{a0}@SUM(A1)"), "'\u{a0}@SUM(A1)");
+        assert_eq!(f(" -2"), "' -2");
+        assert_eq!(f("\tx"), "'\tx");
+        assert_eq!(f("\rx"), "\"'\rx\"");
+        assert_eq!(f("a=b"), "a=b");
+        assert_eq!(f("  text"), "  text");
+        let mut o = String::new();
+        field(" =1", false, &mut o);
+        assert_eq!(o, " =1");
+    }
     use yamdv_core::doc::ReadOpts;
 
     #[test]

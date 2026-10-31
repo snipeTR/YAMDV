@@ -23,18 +23,11 @@ pub(in crate::window) struct Files {
     hint: Option<Msg>,
 }
 
-/// UNC path or a mapped network drive.
+/// UNC path, mapped network drive or a junction to the network: the shared S-RES-02 check
+/// (S1, prompt 022).
 fn is_network(path: &str) -> bool {
-    use windows::Win32::Storage::FileSystem::GetDriveTypeW;
-    if path.starts_with("\\\\") && !path.starts_with("\\\\?\\") && !path.starts_with("\\\\.\\") {
-        return true;
-    }
-    let Some(drive) = path.get(..2).filter(|d| d.ends_with(':')) else {
-        return false;
-    };
-    let root = HSTRING::from(format!("{drive}\\"));
-    // SAFETY: valid NUL-terminated string.
-    unsafe { GetDriveTypeW(&root) == 4 }
+    ypath::local_policy(path, ypath::Scope::Local, &mut crate::images::WinFs)
+        == Err(ypath::Blocked::Network)
 }
 
 /// Lists one folder (runs on a worker thread): sub-folders and Markdown files, skip rules

@@ -109,7 +109,9 @@ live inline HTML → fence longer than the longest inner run, test + seed;
 `hard02_ini_round_trip_seeds`;
 (4) `cf_html` (2 119 s, 8.06 M execs): libFuzzer RSS limit (2 560 MB) on the empty input — harness
 growth, not a product leak: natively 30 × 4 485 corpus inputs keep RSS flat at 4.8 MiB (VmHWM
-4.8 MiB). Corpus samples (3.4 MB) are committed under `fuzz/seeds/*/cmin-*`.
+4.8 MiB). Corpus samples are committed under `fuzz/seeds/*/cmin-*`; prompt 022 §4 re-ran `cargo fuzz cmin`
+on all 18 targets and dropped 488 redundant files (13 541 files, 3.3 MB of content; the 57 MB
+reported by `du` is 4 KiB file-system blocks).
 
 ## Binary checks (S-NET-03, S-TEST-03)
 

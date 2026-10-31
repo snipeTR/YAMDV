@@ -191,7 +191,28 @@ pub(crate) fn color(v: &str) -> Option<u32> {
     })
 }
 
-/// Label text: `<br>` variants become line breaks, quotes are stripped.
+/// Mermaid entity code at the start of `t` (`#quot;`, `#amp;`, `#lt;`, `#gt;`, `#35;`):
+/// (decoded char, byte length). B3 (prompt 022).
+pub(crate) fn entity_at(t: &str) -> Option<(char, usize)> {
+    let body = t.strip_prefix('#')?;
+    let end = body.get(..12.min(body.len())).unwrap_or(body).find(';')?;
+    let name = body.get(..end)?;
+    let c = match name {
+        "quot" => '"',
+        "amp" => '&',
+        "lt" => '<',
+        "gt" => '>',
+        "nbsp" => '\u{a0}',
+        n if !n.is_empty() && n.bytes().all(|b| b.is_ascii_digit()) => {
+            char::from_u32(n.parse().ok()?)?
+        }
+        _ => return None,
+    };
+    Some((c, end + 2))
+}
+
+/// Label text: `<br>` variants become line breaks, quotes are stripped, entity codes
+/// (`#quot;` …) are decoded.
 pub(crate) fn label(s: &str) -> String {
     let s = s.trim();
     let s = s
@@ -216,6 +237,30 @@ pub(crate) fn label(s: &str) -> String {
         } else {
             out.push('<');
             rest = tail.get(1..).unwrap_or("");
+        }
+    }
+    out.push_str(rest);
+    decode_entities(&out)
+}
+
+fn decode_entities(s: &str) -> String {
+    if !s.contains('#') {
+        return s.to_string();
+    }
+    let mut out = String::with_capacity(s.len());
+    let mut rest = s;
+    while let Some(i) = rest.find('#') {
+        out.push_str(rest.get(..i).unwrap_or(""));
+        let tail = rest.get(i..).unwrap_or("");
+        match entity_at(tail) {
+            Some((c, n)) => {
+                out.push(c);
+                rest = tail.get(n..).unwrap_or("");
+            }
+            None => {
+                out.push('#');
+                rest = tail.get(1..).unwrap_or("");
+            }
         }
     }
     out.push_str(rest);

@@ -63,6 +63,8 @@ messages! {
     LabelFootnotes => "footnotes", "dipnotlar";
     LabelFrontMatter => "front matter", "ön bilgi";
     LinkNotFound => "Link target not found: ", "Bağlantı hedefi bulunamadı: ";
+    LinkNetwork => "Network location blocked: ", "Ağ konumu engellendi: ";
+    LinkOpenFailed => "Could not open link", "Bağlantı açılamadı";
     BlockedLinkType => "Blocked link type", "Engellenen bağlantı türü";
     LinkAskTitle => "Open external link?", "Dış bağlantı açılsın mı?";
     LinkCredentials => "Warning: this link contains a user name or password.", "Uyarı: bu bağlantı bir kullanıcı adı veya parola içeriyor.";
@@ -74,6 +76,7 @@ messages! {
     BlockedSafety => "Blocked for safety", "Güvenlik nedeniyle engellendi";
     ShowInExplorer => "Show in Explorer", "Gezgin'de göster";
     OpenButton => "Open", "Aç";
+    EditorConfirmTitle => "Run this editor command?", "Bu düzenleyici komutu çalıştırılsın mı?";
     FromInternet => "This file came from the internet", "Bu dosya internetten geldi";
     FrontMatterOne => "Front matter · 1 field", "Ön bilgi · 1 alan";
     FrontMatterN => "Front matter · {} fields", "Ön bilgi · {} alan";

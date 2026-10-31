@@ -134,6 +134,8 @@ pub(super) fn tool_cmd(id: &str) -> Option<u32> {
 }
 
 /// Icon of a menu command (B.7.1 icon column), when the command has one.
+// SAFETY/bounds: each table index is `i - BASE` under a range guard of the table's length.
+#[allow(clippy::indexing_slicing)]
 pub(super) fn menu_icon(id: u32) -> Option<String> {
     let named = |s: &str| Some(s.to_string());
     match id {

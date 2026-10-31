@@ -463,9 +463,10 @@ pub fn ui_language_tag() -> &'static str {
 
 /// Hands a validated URL or an allowlisted local file to the default handler (S-EXEC-04,
 /// R-LINK-04): `ShellExecuteExW` with the "open" verb, never `SEE_MASK_NOZONECHECKS`.
-pub fn shell_open(target: &str) {
+/// `false` when `ShellExecuteExW` failed (S4, prompt 022: the caller shows a toast).
+pub fn shell_open(target: &str) -> bool {
     if dry_launch() {
-        return;
+        return true;
     }
     use windows::Win32::UI::Shell::{SEE_MASK_NOASYNC, SHELLEXECUTEINFOW, ShellExecuteExW};
     use windows::Win32::UI::WindowsAndMessaging::SW_SHOWNORMAL;
@@ -479,7 +480,7 @@ pub fn shell_open(target: &str) {
         ..Default::default()
     };
     // SAFETY: `info` is fully initialized and `file` outlives the call.
-    let _ = unsafe { ShellExecuteExW(&mut info) };
+    unsafe { ShellExecuteExW(&mut info) }.is_ok()
 }
 
 /// Opens Explorer with `path` selected (R-LINK-05); never runs the file.
@@ -514,11 +515,25 @@ pub fn idn_to_ascii(host: &str) -> Option<String> {
 
 /// R-LINK-03: `Page.md` (then `Page.markdown`) in `dir`, then recursively in subfolders (max
 /// depth 4, first match by shortest path). Bounded: at most 10 000 directory entries.
-pub fn find_wiki(dir: &str, name: &str) -> Option<String> {
-    let mut cands = vec![name.replace('/', "\\")];
+/// S2 (prompt 022): names with `..`, `:` or a leading `\` are refused, junctions are never
+/// walked into, and every candidate passes the S-RES-02 check relative to `doc` **before**
+/// `is_file()` (which follows reparse points). `Err(Network)` when the only match was blocked.
+pub fn find_wiki(
+    dir: &str,
+    name: &str,
+    doc: &str,
+) -> Result<Option<String>, yamdv_core::path::Blocked> {
+    use yamdv_core::path::{self as ypath, Blocked, Scope};
+    let name = name.replace('/', "\\");
+    if !ypath::wiki_name_ok(&name) {
+        return Ok(None);
+    }
+    let mut cands = vec![name.clone()];
     if let Some(stem) = name.strip_suffix(".md") {
         cands.push(format!("{stem}.markdown"));
     }
+    let mut fs = crate::images::WinFs;
+    let mut blocked = false;
     let mut level = vec![dir.to_string()];
     let mut budget = 10_000usize;
     for _ in 0..=4 {
@@ -526,22 +541,30 @@ pub fn find_wiki(dir: &str, name: &str) -> Option<String> {
         for d in &level {
             for c in &cands {
                 let p = format!("{d}\\{c}");
-                if std::path::Path::new(&yamdv_core::path::long_form(&p)).is_file() {
+                match ypath::local_policy(&p, Scope::Doc(doc), &mut fs) {
+                    Ok(()) => {}
+                    Err(Blocked::Network) => {
+                        blocked = true;
+                        continue;
+                    }
+                    Err(_) => continue,
+                }
+                if std::path::Path::new(&ypath::long_form(&p)).is_file() {
                     hits.push(p);
                 }
             }
         }
         if let Some(h) = hits.into_iter().min_by_key(String::len) {
-            return Some(h);
+            return Ok(Some(h));
         }
         let mut next = Vec::new();
         for d in &level {
-            let Ok(rd) = std::fs::read_dir(yamdv_core::path::long_form(d)) else {
+            let Ok(rd) = std::fs::read_dir(ypath::long_form(d)) else {
                 continue;
             };
             for e in rd.flatten() {
                 if budget == 0 {
-                    return None;
+                    return Ok(None);
                 }
                 budget -= 1;
                 if e.file_type().is_ok_and(|t| t.is_dir() && !t.is_symlink()) {
@@ -552,7 +575,11 @@ pub fn find_wiki(dir: &str, name: &str) -> Option<String> {
         next.sort();
         level = next;
     }
-    None
+    if blocked {
+        Err(Blocked::Network)
+    } else {
+        Ok(None)
+    }
 }
 
 static DRY_RUN: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);

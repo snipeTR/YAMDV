@@ -6,7 +6,7 @@
 //! validated http/https/mailto URLs (plus in-document anchors in the document mode).
 
 // Node and block indices come from the trees' own arenas (in bounds by construction).
-#![allow(clippy::indexing_slicing)]
+// `indexing_slicing` is allowed per function, each with a `SAFETY/bounds:` note (prompt 022 §4).
 
 use std::collections::HashMap;
 use std::fmt::Write as _;
@@ -169,6 +169,8 @@ impl Wr<'_> {
 }
 
 /// `data:` URI of `bytes` (RFC 2397, base64).
+// SAFETY/bounds: `T` has 64 entries and every index is masked with `& 63`.
+#[allow(clippy::indexing_slicing)]
 pub fn data_uri(mime: &str, bytes: &[u8]) -> String {
     const T: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     let mut s = String::with_capacity(bytes.len() * 4 / 3 + 32);
@@ -458,6 +460,8 @@ fn code_block(doc: &Document, d: &Detail, i: usize, lang: &str, x: &mut Wr<'_>, 
     out.push_str("</code></pre>");
 }
 
+// SAFETY/bounds: node ids come from the arena's own child lists, so they are < `d.nodes.len()`.
+#[allow(clippy::indexing_slicing)]
 fn node(doc: &Document, d: &Detail, i: usize, sel: &Range<u32>, x: &mut Wr<'_>, out: &mut String) {
     let n = &d.nodes[i];
     if (n.range.end <= sel.start || n.range.start >= sel.end)
@@ -690,6 +694,8 @@ fn blocks(doc: &Document, sel: &Range<u32>, x: &mut Wr<'_>, out: &mut String) {
 
 /// [`blocks`] with a progress callback `(done, total)` before each block; `false` from the
 /// callback stops (cancel, R-EXP-07) and returns `false`.
+// SAFETY/bounds: `bi` runs over a `..doc.index.blocks.len()` range; node ids come from the arena.
+#[allow(clippy::indexing_slicing)]
 fn blocks_with(
     doc: &Document,
     sel: &Range<u32>,
@@ -1022,6 +1028,8 @@ pub fn cf_html_document(doc: &str) -> String {
 
 /// "Copy as Markdown" (§4.9): the source slice covering `sel`, expanded to whole inline
 /// constructs (every run the selection touches) and to whole lines for block-level edges.
+// SAFETY/bounds: `bi` runs over a `..doc.index.blocks.len()` range; node ids come from the arena.
+#[allow(clippy::indexing_slicing)]
 pub fn markdown_slice(doc: &Document, sel: Range<u32>) -> String {
     let (mut a, mut b) = (sel.start, sel.end);
     let first = doc.index.block_at(sel.start);

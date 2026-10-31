@@ -2400,17 +2400,7 @@ pub(super) fn run_op(hwnd: HWND, op: Op) -> Vec<Action> {
             if !std::path::Path::new(&p).exists() {
                 app::edit_custom_theme(|_| {});
             }
-            let s = app::settings_snapshot();
-            let ok = crate::shell::open_in_editor(
-                &p,
-                1,
-                s.str("external_editor.custom_exe"),
-                s.str("external_editor.custom_args"),
-                s.str("external_editor.mode") == "custom",
-            );
-            if !ok {
-                app::with_win(hwnd, |w, _| w.toast(Msg::ToastNoEditor));
-            }
+            app::with_win(hwnd, |w, _| w.launch_editor(&p, 1));
         }
         Op::Dropdown(i, pt) => {
             let Some(row) = ROWS.get(i) else { return out };

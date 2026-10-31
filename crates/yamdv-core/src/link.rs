@@ -4,7 +4,7 @@
 //! (no `url` crate, §4.8).
 
 // Byte indices are bounded by the preceding `find`/length checks.
-#![allow(clippy::indexing_slicing)]
+// `indexing_slicing` is allowed per function, each with a `SAFETY/bounds:` note (prompt 022 §4).
 
 use std::fmt::Write as _;
 
@@ -209,6 +209,8 @@ pub enum Target {
 }
 
 /// Percent-decodes `s` (invalid sequences stay literal; non-UTF-8 results are lossy).
+// SAFETY/bounds: indices are guarded by `i < b.len()` (loop head) and `.get()` for look-ahead.
+#[allow(clippy::indexing_slicing)]
 pub fn percent_decode(s: &str) -> String {
     let b = s.as_bytes();
     let mut out = Vec::with_capacity(b.len());
@@ -282,7 +284,7 @@ pub fn classify(dest: &str, wiki: bool) -> Target {
             _ => Target::Blocked,
         };
     }
-    let drive = d.len() >= 2 && d.as_bytes()[0].is_ascii_alphabetic() && d.as_bytes()[1] == b':';
+    let drive = matches!(d.as_bytes(), [l, b':', ..] if l.is_ascii_alphabetic());
     if d.starts_with(['/', '\\']) || drive || d.is_empty() {
         // Network paths, protocol-relative URLs and absolute paths are never followed.
         return Target::Blocked;
@@ -347,9 +349,17 @@ pub fn local_kind(name: &str) -> LocalKind {
     }
 }
 
-/// Decision for an external URL (R-LINK-04, S-LINK-04): `true` = ask first.
-pub fn must_ask(mode: ExternalMode, motw_internet: bool) -> bool {
-    motw_internet || mode == ExternalMode::Ask
+/// Decision for an external URL (R-LINK-04, S-LINK-04): `true` = ask first. S4 (prompt 022):
+/// userinfo (`user@host`), IDN / punycode hosts and non-default ports always ask, whatever
+/// the mode, because the visible text can disguise the real destination.
+pub fn must_ask(mode: ExternalMode, motw_internet: bool, url: &Url) -> bool {
+    let default_port = match url.scheme.as_str() {
+        "http" => Some(80),
+        "https" => Some(443),
+        _ => None,
+    };
+    let odd_port = url.port.is_some_and(|p| Some(p) != default_port);
+    motw_internet || mode == ExternalMode::Ask || url.userinfo.is_some() || url.is_idn() || odd_port
 }
 
 /// `ZoneId` of a `Zone.Identifier` stream's contents (S-LINK-04).
@@ -470,9 +480,30 @@ mod tests {
             Some(3)
         );
         assert_eq!(zone_id("garbage"), None);
-        assert!(must_ask(ExternalMode::Open, true));
-        assert!(!must_ask(ExternalMode::Open, false));
-        assert!(must_ask(ExternalMode::Ask, false));
+        let plain = parse_url("https://example.com/x").unwrap();
+        assert!(must_ask(ExternalMode::Open, true, &plain));
+        assert!(!must_ask(ExternalMode::Open, false, &plain));
+        assert!(must_ask(ExternalMode::Ask, false, &plain));
+        // S4 (prompt 022): suspicious forms always ask, even in "open directly" mode.
+        for u in [
+            "https://user@example.com/",
+            "https://user:pw@example.com/",
+            "https://xn--80ak6aa92e.com/",
+            "https://exämple.com/",
+            "https://example.com:8443/",
+            "http://example.com:443/",
+        ] {
+            let url = parse_url(u).unwrap();
+            assert!(must_ask(ExternalMode::Open, false, &url), "{u}");
+        }
+        for u in [
+            "https://example.com:443/",
+            "http://example.com:80/",
+            "mailto:a@b.c",
+        ] {
+            let url = parse_url(u).unwrap();
+            assert!(!must_ask(ExternalMode::Open, false, &url), "{u}");
+        }
     }
 
     /// Fuzz regression (url target): a host with a stray ':' broke serialize/parse idempotence.

@@ -102,11 +102,6 @@ pub(super) fn data_dir() -> String {
     with(|a| a.dir.clone()).unwrap_or_else(config_dir)
 }
 
-/// A copy of the current settings.
-pub(super) fn settings_snapshot() -> yamdv_core::settings::Settings {
-    with(|a| a.settings.clone()).unwrap_or_default()
-}
-
 /// A dropdown popup: one item per option, the current one checked (`SET_OPT0 + index`).
 pub(super) fn options_menu(lang: Lang, opts: &[(String, String)], cur: &str) -> Model {
     let b = Builder::new(lang);
@@ -1472,17 +1467,7 @@ pub(super) fn run_command(hwnd: HWND, id: u32, link: Option<String>) -> Vec<Acti
                 .unwrap_or_default();
                 let _ = crate::shell::write_atomic(&p, &text);
             }
-            let s = with(|a| a.settings.clone()).unwrap_or_default();
-            let ok = crate::shell::open_in_editor(
-                &p,
-                1,
-                s.str("external_editor.custom_exe"),
-                s.str("external_editor.custom_args"),
-                s.str("external_editor.mode") == "custom",
-            );
-            if !ok {
-                with_win(hwnd, |w, _| w.toast(Msg::ToastNoEditor));
-            }
+            with_win(hwnd, |w, _| w.launch_editor(&p, 1));
         }
         CONFIG_DIR => {
             let p = settings_path();
@@ -1597,15 +1582,40 @@ impl Win {
         }
         let path = d.path.clone();
         let line = self.current_line();
+        self.launch_editor(&path, line);
+    }
+
+    /// Starts the external editor for `file` (R-EXT-01…03). S7 (prompt 022): a custom editor
+    /// asks once, showing the full command line, until this exact form is approved.
+    pub(super) fn launch_editor(&mut self, file: &str, line: u32) {
         let s = with(|a| a.settings.clone()).unwrap_or_default();
-        let ok = crate::shell::open_in_editor(
-            &path,
-            line,
-            s.str("external_editor.custom_exe"),
-            s.str("external_editor.custom_args"),
-            s.str("external_editor.mode") == "custom",
-        );
-        if !ok {
+        let exe = s.str("external_editor.custom_exe");
+        let args = s.str("external_editor.custom_args");
+        let custom = s.str("external_editor.mode") == "custom";
+        if custom && !exe.is_empty() {
+            let approved = with(|a| a.state.editor_approved.clone()).unwrap_or_default();
+            if let Some(approval) = crate::shell::custom_needs_confirm(exe, args, &approved)
+                && let Some(sh) = shared()
+            {
+                let cmd = yamdv_core::cmdline::command_line(
+                    exe,
+                    &yamdv_core::cmdline::expand_template(args, file, line, 1),
+                );
+                self.ask_text(
+                    &sh,
+                    Msg::EditorConfirmTitle,
+                    cmd,
+                    vec![(Msg::Cancel, BTN_CANCEL), (Msg::OpenButton, BTN_OPEN)],
+                    Pending::Editor {
+                        file: file.to_string(),
+                        line,
+                        approval,
+                    },
+                );
+                return;
+            }
+        }
+        if !crate::shell::open_in_editor(file, line, exe, args, custom) {
             self.toast(Msg::ToastNoEditor);
         }
     }

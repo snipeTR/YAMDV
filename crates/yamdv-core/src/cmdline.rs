@@ -142,21 +142,89 @@ pub fn expand_template(tpl: &str, file: &str, line: u32, col: u32) -> Vec<String
         .collect()
 }
 
-/// `true` for targets S-EXEC-03 forbids (shell interpreters and script files) or non-`.exe`.
+/// Launchers S-EXEC-03 never starts as an "editor": shells, script hosts and the LOLBins
+/// that run arbitrary code from their arguments (S7, prompt 022).
+const FORBIDDEN_EXE: &[&str] = &[
+    "cmd.exe",
+    "powershell.exe",
+    "pwsh.exe",
+    "wscript.exe",
+    "cscript.exe",
+    "mshta.exe",
+    "rundll32.exe",
+    "regsvr32.exe",
+    "reg.exe",
+    "msiexec.exe",
+    "wsl.exe",
+    "bash.exe",
+    "hh.exe",
+    "explorer.exe",
+    "certutil.exe",
+    "bitsadmin.exe",
+    "schtasks.exe",
+    "forfiles.exe",
+    "msbuild.exe",
+    "installutil.exe",
+    "regasm.exe",
+];
+
+/// `true` for targets S-EXEC-03 forbids (shell interpreters, script hosts, LOLBins) or
+/// non-`.exe`.
 pub fn forbidden_target(exe: &str) -> bool {
     let l = exe.to_ascii_lowercase().replace('/', "\\");
     let name = l.rsplit('\\').next().unwrap_or(&l);
-    !name.ends_with(".exe")
-        || matches!(
-            name,
-            "cmd.exe" | "powershell.exe" | "pwsh.exe" | "wscript.exe" | "cscript.exe" | "mshta.exe"
-        )
-        || l.starts_with("\\\\")
+    !name.ends_with(".exe") || FORBIDDEN_EXE.contains(&name) || l.starts_with("\\\\")
+}
+
+/// S7 (prompt 022): fingerprint of an approved custom editor command (FNV-1a 64 over the
+/// path, the argument template and the file's size and write time). A change re-asks.
+pub fn editor_fingerprint(exe: &str, args: &str, size: u64, mtime: u64) -> String {
+    let mut h: u64 = 0xcbf2_9ce4_8422_2325;
+    let bytes = exe
+        .to_lowercase()
+        .into_bytes()
+        .into_iter()
+        .chain([0])
+        .chain(args.bytes())
+        .chain([0])
+        .chain(size.to_le_bytes())
+        .chain(mtime.to_le_bytes());
+    for b in bytes {
+        h ^= u64::from(b);
+        h = h.wrapping_mul(0x0000_0100_0000_01b3);
+    }
+    format!("{h:016x}")
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn s7_lolbins_forbidden_and_fingerprint() {
+        for x in [
+            "C:\\Windows\\System32\\rundll32.exe",
+            "C:/Windows/System32/REGSVR32.EXE",
+            "c:\\windows\\explorer.exe",
+            "C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\MSBuild.exe",
+            "C:\\x\\certutil.exe",
+            "C:\\x\\wsl.exe",
+            "C:\\x\\regasm.exe",
+            "C:\\x\\a.bat",
+            "\\\\srv\\s\\code.exe",
+        ] {
+            assert!(forbidden_target(x), "{x}");
+        }
+        assert!(!forbidden_target(
+            "C:\\Program Files\\Notepad++\\notepad++.exe"
+        ));
+        let a = editor_fingerprint("C:\\e.exe", "{file}", 10, 20);
+        assert_eq!(a, editor_fingerprint("c:\\E.EXE", "{file}", 10, 20));
+        assert_ne!(a, editor_fingerprint("C:\\e.exe", "{file} -x", 10, 20));
+        assert_ne!(a, editor_fingerprint("C:\\e.exe", "{file}", 11, 20));
+        assert_ne!(a, editor_fingerprint("C:\\f.exe", "{file}", 10, 20));
+        assert_eq!(a.len(), 16);
+    }
 
     #[test]
     fn s_exec_03_quote_round_trip() {

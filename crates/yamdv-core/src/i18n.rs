@@ -76,6 +76,7 @@ messages! {
     BlockedSafety => "Blocked for safety", "Güvenlik nedeniyle engellendi";
     ShowInExplorer => "Show in Explorer", "Gezgin'de göster";
     OpenButton => "Open", "Aç";
+    EditorConfirmTitle => "Run this editor command?", "Bu düzenleyici komutu çalıştırılsın mı?";
     FromInternet => "This file came from the internet", "Bu dosya internetten geldi";
     FrontMatterOne => "Front matter · 1 field", "Ön bilgi · 1 alan";
     FrontMatterN => "Front matter · {} fields", "Ön bilgi · {} alan";

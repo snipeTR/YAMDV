@@ -98,6 +98,8 @@ pub struct State {
     pub sidebar_tab: u8,
     /// Collapsed TOC heading block indexes per document.
     pub toc: Vec<(String, Vec<u32>)>,
+    /// S7 (prompt 022): approved custom editor, `path|fingerprint`.
+    pub editor_approved: String,
 }
 
 fn key_eq(a: &str, b: &str) -> bool {
@@ -156,6 +158,7 @@ impl State {
                 s.toc.push((p.to_string(), ids));
             }
         }
+        s.editor_approved = ini.get("editor", "approved").unwrap_or("").to_string();
         s.sidebar_tab = ini
             .get("sidebar", "tab")
             .and_then(|v| v.parse().ok())
@@ -175,6 +178,9 @@ impl State {
             );
         }
         ini.set("sidebar", "tab", &self.sidebar_tab.to_string());
+        if !self.editor_approved.is_empty() {
+            ini.set("editor", "approved", &self.editor_approved);
+        }
         let mut out = ini.write();
         let mut list = |sec: &str, items: Vec<String>| {
             out.push_str(&format!("[{sec}]\n"));

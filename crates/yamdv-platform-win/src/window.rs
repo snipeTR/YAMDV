@@ -398,6 +398,12 @@ enum Pending {
     Panel(&'static str),
     /// Large files dropped on an edit mode (prompt 015 §3.5).
     Drop(Vec<String>),
+    /// S7 (prompt 022): first use of a (changed) custom editor; `approval` is stored on OK.
+    Editor {
+        file: String,
+        line: u32,
+        approval: String,
+    },
 }
 
 const BTN_CANCEL: u32 = 0;
@@ -865,6 +871,18 @@ impl Win {
             (Pending::Large { path }, BTN_PLAIN) => self.open(sh, &path, Some(true), false),
             (Pending::Large { path }, BTN_RENDER) => self.open(sh, &path, Some(false), false),
             (Pending::Binary { path, plain }, BTN_OPEN) => self.open(sh, &path, Some(plain), true),
+            (
+                Pending::Editor {
+                    file,
+                    line,
+                    approval,
+                },
+                BTN_OPEN,
+            ) => {
+                app::with(|a| a.state.editor_approved = approval);
+                app::save_state();
+                self.launch_editor(&file, line);
+            }
             (Pending::Local { path }, BTN_OPEN) => {
                 if !sys::shell_open(&path) {
                     self.toast(Msg::LinkOpenFailed);

@@ -5,7 +5,7 @@
 //! attribute value.
 
 // Byte indices are bounded by the loop conditions and land on ASCII bytes / char boundaries.
-#![allow(clippy::indexing_slicing)]
+// `indexing_slicing` is allowed per function, each with a `SAFETY/bounds:` note (prompt 022 §4).
 
 use std::ops::Range;
 
@@ -98,6 +98,8 @@ enum Raw {
     Text(Range<usize>),
 }
 
+// SAFETY/bounds: every index is guarded by `i < b.len()` / `j < s.len()` in the same condition or loop head.
+#[allow(clippy::indexing_slicing)]
 fn tokenize(s: &str, budget: &mut usize) -> Vec<Raw> {
     let b = s.as_bytes();
     let mut out = Vec::new();
@@ -143,6 +145,8 @@ fn tokenize(s: &str, budget: &mut usize) -> Vec<Raw> {
     out
 }
 
+// SAFETY/bounds: every index is guarded by `i < b.len()` / `j < s.len()` in the same condition or loop head.
+#[allow(clippy::indexing_slicing)]
 fn name_len(s: &[u8]) -> usize {
     let mut j = 0;
     while j < s.len() && (s[j].is_ascii_alphanumeric() || s[j] == b'-') {
@@ -152,6 +156,8 @@ fn name_len(s: &[u8]) -> usize {
 }
 
 /// Parses a tag at the start of `s` (`s` starts with `<`).
+// SAFETY/bounds: every index is guarded by `i < b.len()` / `j < s.len()` in the same condition or loop head.
+#[allow(clippy::indexing_slicing)]
 fn tag(s: &str) -> Option<(Raw, usize)> {
     let b = s.as_bytes();
     let mut i = 1;

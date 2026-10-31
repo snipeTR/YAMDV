@@ -1282,6 +1282,9 @@ pub(super) fn with_win(hwnd: HWND, f: impl FnOnce(&mut Win, &Shared)) {
 }
 
 /// Executes a menu command (also used by keyboard shortcuts and the test driver).
+// SAFETY/bounds: every table index is `i - BASE` under a `(BASE..BASE + len).contains(&i)` guard
+// whose `len` equals the literal table length.
+#[allow(clippy::indexing_slicing)]
 pub(super) fn run_command(hwnd: HWND, id: u32, link: Option<String>) -> Vec<Action> {
     let mut out = Vec::new();
     let scheme = |i: u32| SCHEMES.get(i as usize).map(|s| s.0);

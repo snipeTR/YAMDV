@@ -4,7 +4,7 @@
 //! (no `url` crate, §4.8).
 
 // Byte indices are bounded by the preceding `find`/length checks.
-#![allow(clippy::indexing_slicing)]
+// `indexing_slicing` is allowed per function, each with a `SAFETY/bounds:` note (prompt 022 §4).
 
 use std::fmt::Write as _;
 
@@ -209,6 +209,8 @@ pub enum Target {
 }
 
 /// Percent-decodes `s` (invalid sequences stay literal; non-UTF-8 results are lossy).
+// SAFETY/bounds: indices are guarded by `i < b.len()` (loop head) and `.get()` for look-ahead.
+#[allow(clippy::indexing_slicing)]
 pub fn percent_decode(s: &str) -> String {
     let b = s.as_bytes();
     let mut out = Vec::with_capacity(b.len());
@@ -282,7 +284,7 @@ pub fn classify(dest: &str, wiki: bool) -> Target {
             _ => Target::Blocked,
         };
     }
-    let drive = d.len() >= 2 && d.as_bytes()[0].is_ascii_alphabetic() && d.as_bytes()[1] == b':';
+    let drive = matches!(d.as_bytes(), [l, b':', ..] if l.is_ascii_alphabetic());
     if d.starts_with(['/', '\\']) || drive || d.is_empty() {
         // Network paths, protocol-relative URLs and absolute paths are never followed.
         return Target::Blocked;

@@ -50,6 +50,8 @@ impl TblOp {
 
     #[cfg(feature = "dev-tools")]
     /// Script / driver name.
+    // SAFETY/bounds: one entry per variant, in `ALL` order (`self as usize` < len).
+    #[allow(clippy::indexing_slicing)]
     pub(in crate::window) fn name(self) -> &'static str {
         [
             "row-above",
@@ -78,6 +80,8 @@ impl TblOp {
     }
 
     /// Menu / tooltip label.
+    // SAFETY/bounds: the table has one entry per variant, in `ALL` order (`self as usize` < len).
+    #[allow(clippy::indexing_slicing)]
     pub(in crate::window) fn msg(self) -> Msg {
         [
             Msg::MTblRowAbove,

@@ -5,12 +5,13 @@
 //! PHASE-004: custom title bar replaces the temporary system caption.
 #![allow(unsafe_code)]
 // Pixel/DIP geometry: float<->int conversions are bounded by window/bitmap sizes (ADR-0007).
+// `indexing_slicing` is no longer allowed file-wide (prompt 022 §4): the few functions that index
+// fixed tables carry their own `#[allow]` with a `SAFETY/bounds:` note.
 #![allow(
     clippy::cast_possible_truncation,
     clippy::cast_sign_loss,
     clippy::cast_precision_loss,
-    clippy::cast_possible_wrap,
-    clippy::indexing_slicing
+    clippy::cast_possible_wrap
 )]
 
 use std::cell::RefCell;
@@ -1104,7 +1105,9 @@ impl Win {
             cur.1 = scroll;
         }
         self.focus = None;
-        let (path, y) = self.history[next].clone();
+        let Some((path, y)) = self.history.get(next).cloned() else {
+            return;
+        };
         self.open(sh, &path, None, false);
         self.hist_pos = next;
         self.prepare_now(sh);

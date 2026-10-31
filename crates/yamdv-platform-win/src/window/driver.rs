@@ -1374,7 +1374,10 @@ fn state(w: &mut Win, sh: &Shared) -> Vec<(String, serde_like::V)> {
         _ => (0, (0, 0)),
     };
     let favorites = app::with(|a| a.state.favorites.len()).unwrap_or(0);
-    let edit_mode = ["read", "live", "split"][usize::from(w.edit_mode_id())];
+    let edit_mode = ["read", "live", "split"]
+        .get(usize::from(w.edit_mode_id()))
+        .copied()
+        .unwrap_or("read");
     let (dirty, active, caret, sel_len, buffer, undo, t5) = match w.edit() {
         Some(e) => {
             let mut l = e.lat.clone();

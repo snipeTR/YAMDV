@@ -3,7 +3,7 @@
 //! formatting stripped to plain text, formula-injection guard.
 
 // Node indices come from the detail tree's own arena (in bounds by construction).
-#![allow(clippy::indexing_slicing)]
+// `indexing_slicing` is allowed per function, each with a `SAFETY/bounds:` note (prompt 022 §4).
 
 use yamdv_core::doc::Document;
 use yamdv_core::doc::detail::{Detail, NodeKind, RunKind};
@@ -59,6 +59,8 @@ fn cell_text(doc: &Document, d: &Detail, i: usize) -> String {
 
 /// Plain-text cells of table node `t` in detail tree `d`.
 /// A `rowspan` cell (BUG-05) leaves empty fields below it so every row keeps the grid.
+// SAFETY/bounds: node ids come from the arena's own child lists, so they are < `d.nodes.len()`.
+#[allow(clippy::indexing_slicing)]
 pub fn table_rows(doc: &Document, d: &Detail, t: usize) -> Vec<Vec<String>> {
     let mut busy: Vec<usize> = Vec::new();
     d.children(t)
@@ -96,6 +98,8 @@ pub fn table_rows(doc: &Document, d: &Detail, t: usize) -> Vec<Vec<String>> {
 }
 
 /// The table of top-level block `bi` containing source offset `at` (or its first table).
+// SAFETY/bounds: node ids come from the arena's own child lists, so they are < `d.nodes.len()`.
+#[allow(clippy::indexing_slicing)]
 pub fn table_at(doc: &Document, bi: usize, at: u32) -> Option<Vec<Vec<String>>> {
     let d = doc.detail_uncached(bi);
     let tables: Vec<usize> = (0..d.nodes.len())

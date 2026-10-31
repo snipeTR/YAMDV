@@ -295,7 +295,7 @@ checksum = "c6f5d3c3b1bf09027a88a6bc961fc00497d651009560b5463668dc81b0fa87a8"
 
 [[package]]
 name = "yamdv-core"
-version = "1.4.0"
+version = "2.1.1"
 dependencies = [
  "chardetng",
  "encoding_rs",
@@ -305,7 +305,7 @@ dependencies = [
 
 [[package]]
 name = "yamdv-editor"
-version = "1.4.0"
+version = "2.1.1"
 dependencies = [
  "regex-lite",
  "ropey",
@@ -314,7 +314,7 @@ dependencies = [
 
 [[package]]
 name = "yamdv-export"
-version = "1.4.0"
+version = "2.1.1"
 dependencies = [
  "pdf-writer",
  "subsetter",
@@ -342,11 +342,11 @@ dependencies = [
 
 [[package]]
 name = "yamdv-highlight"
-version = "1.4.0"
+version = "2.1.1"
 
 [[package]]
 name = "yamdv-layout"
-version = "1.4.0"
+version = "2.1.1"
 dependencies = [
  "unicode-segmentation",
  "yamdv-core",
@@ -357,11 +357,11 @@ dependencies = [
 
 [[package]]
 name = "yamdv-math"
-version = "1.4.0"
+version = "2.1.1"
 
 [[package]]
 name = "yamdv-mermaid"
-version = "1.4.0"
+version = "2.1.1"
 dependencies = [
  "yamdv-core",
  "yamdv-ui",
@@ -369,14 +369,14 @@ dependencies = [
 
 [[package]]
 name = "yamdv-svg"
-version = "1.4.0"
+version = "2.1.1"
 dependencies = [
  "tiny-skia",
 ]
 
 [[package]]
 name = "yamdv-ui"
-version = "1.4.0"
+version = "2.1.1"
 dependencies = [
  "yamdv-core",
 ]

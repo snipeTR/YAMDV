@@ -677,7 +677,9 @@ impl Win {
             self.show_error(Msg::InvalidPath, path);
             return;
         };
-        if ypath::validate(&full).is_err() {
+        // S1 (prompt 022): the shared policy; a document the user opened himself may be on a
+        // network share (links inside it are checked in `link_click`).
+        if ypath::local_policy(&full, ypath::Scope::User, &mut crate::images::WinFs).is_err() {
             self.show_error(Msg::InvalidPath, &full);
             return;
         }
@@ -943,15 +945,36 @@ impl Win {
                 let dir = doc_path
                     .rsplit_once(['\\', '/'])
                     .map_or(String::new(), |(d, _)| d.to_string());
+                // S1 (prompt 022): the shared S-RES-02 check runs before anything touches the
+                // target, so a link through a junction / symlink to another network location
+                // never reaches `CreateFile` (NTLM leak).
                 let found = if wiki {
-                    sys::find_wiki(&dir, &path)
+                    sys::find_wiki(&dir, &path, &doc_path)
                 } else {
                     let full = format!("{dir}\\{}", path.replace('/', "\\"));
-                    sys::full_path(&full).filter(|f| sys::stat(&ypath::long_form(f)).is_ok())
+                    match sys::full_path(&full) {
+                        None => Ok(None),
+                        Some(f) => match ypath::local_policy(
+                            &f,
+                            ypath::Scope::Doc(&doc_path),
+                            &mut crate::images::WinFs,
+                        ) {
+                            Ok(()) => Ok(sys::stat(&ypath::long_form(&f)).is_ok().then_some(f)),
+                            Err(ypath::Blocked::Network) => Err(ypath::Blocked::Network),
+                            Err(_) => Ok(None),
+                        },
+                    }
                 };
-                let Some(full) = found else {
-                    self.toast_with(Msg::LinkNotFound, ypath::file_name(&path));
-                    return;
+                let full = match found {
+                    Ok(Some(f)) => f,
+                    Ok(None) => {
+                        self.toast_with(Msg::LinkNotFound, ypath::file_name(&path));
+                        return;
+                    }
+                    Err(_) => {
+                        self.toast_with(Msg::LinkNetwork, ypath::file_name(&path));
+                        return;
+                    }
                 };
                 let is_dir = sys::stat(&ypath::long_form(&full)).is_ok_and(|(_, dir)| dir);
                 if is_dir {

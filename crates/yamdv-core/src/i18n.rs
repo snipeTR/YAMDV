@@ -63,6 +63,8 @@ messages! {
     LabelFootnotes => "footnotes", "dipnotlar";
     LabelFrontMatter => "front matter", "ön bilgi";
     LinkNotFound => "Link target not found: ", "Bağlantı hedefi bulunamadı: ";
+    LinkNetwork => "Network location blocked: ", "Ağ konumu engellendi: ";
+    LinkOpenFailed => "Could not open link", "Bağlantı açılamadı";
     BlockedLinkType => "Blocked link type", "Engellenen bağlantı türü";
     LinkAskTitle => "Open external link?", "Dış bağlantı açılsın mı?";
     LinkCredentials => "Warning: this link contains a user name or password.", "Uyarı: bu bağlantı bir kullanıcı adı veya parola içeriyor.";

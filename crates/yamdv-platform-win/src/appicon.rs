@@ -32,7 +32,15 @@ pub fn read_valid(path: &str) -> Option<Vec<u8>> {
         .ok()?
         .to_string_lossy()
         .into_owned();
-    if !yamdv_core::path::icon_candidate(&full) || on_network_drive(&full) {
+    // S1 (prompt 022): the shared S-RES-02 check (never on the network, no reparse to it).
+    if !yamdv_core::path::icon_candidate(&full)
+        || yamdv_core::path::local_policy(
+            &full,
+            yamdv_core::path::Scope::Local,
+            &mut crate::images::WinFs,
+        )
+        .is_err()
+    {
         return None;
     }
     let long = yamdv_core::path::long_form(&full);
@@ -45,18 +53,6 @@ pub fn read_valid(path: &str) -> Option<Vec<u8>> {
         return None;
     }
     Some(b)
-}
-
-/// `true` when `full` is on a mapped network drive (`DRIVE_REMOTE`, S-RES-02).
-fn on_network_drive(full: &str) -> bool {
-    use windows::Win32::Storage::FileSystem::GetDriveTypeW;
-    use windows::core::HSTRING;
-    let Some(drive) = full.get(..2).filter(|d| d.ends_with(':')) else {
-        return false;
-    };
-    let root = HSTRING::from(format!("{drive}\\"));
-    // SAFETY: valid NUL-terminated string.
-    unsafe { GetDriveTypeW(&root) == 4 }
 }
 
 /// `true` when `path` is an acceptable custom icon.

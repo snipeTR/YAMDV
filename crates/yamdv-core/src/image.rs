@@ -16,46 +16,7 @@ pub const MAX_PIXELS: u64 = 64_000_000;
 /// P-13: LRU budget for decoded images outside visible ± 1 screen.
 pub const LRU_BYTES: usize = 1_572_864;
 
-/// Result of `GetDriveTypeW` (only the classes the policy needs).
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum DriveKind {
-    /// Fixed, removable, RAM disk or CD.
-    Local,
-    /// `DRIVE_REMOTE` (mapped network drive).
-    Remote,
-    /// Unknown / no root.
-    Unknown,
-}
-
-/// The file-system layer used by the policy. The Windows implementation lives in
-/// `yamdv-platform-win`; tests use a recording mock.
-pub trait Fs {
-    /// `GetDriveTypeW` for a root such as `C:\`.
-    fn drive_kind(&mut self, root: &str) -> DriveKind;
-    /// Opens the final component with `FILE_FLAG_OPEN_REPARSE_POINT`; returns the
-    /// reparse target when it is a symlink/junction, `Some("")` for other
-    /// reparse points, `None` when it is not a reparse point.
-    fn reparse_target(&mut self, path: &str) -> Option<String>;
-    /// File size, `None` if missing.
-    fn size(&mut self, path: &str) -> Option<u64>;
-}
-
-/// A file system that answers "local, not a reparse point, missing" without any I/O
-/// (fuzzing and pure layout).
-#[derive(Debug, Default)]
-pub struct NoFs;
-
-impl Fs for NoFs {
-    fn drive_kind(&mut self, _: &str) -> DriveKind {
-        DriveKind::Local
-    }
-    fn reparse_target(&mut self, _: &str) -> Option<String> {
-        None
-    }
-    fn size(&mut self, _: &str) -> Option<u64> {
-        None
-    }
-}
+pub use crate::path::{DriveKind, Fs, NoFs};
 
 /// Why an image is shown as a placeholder (R-IMG-06).
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -107,17 +68,7 @@ fn is_sep(c: char) -> bool {
     c == '\\' || c == '/'
 }
 
-/// `\\server\share` prefix of a UNC path (lower-cased), if any.
-fn unc_share(p: &str) -> Option<String> {
-    let rest = p.strip_prefix("\\\\")?;
-    let mut it = rest.split('\\');
-    let host = it.next()?;
-    let share = it.next()?;
-    if host.is_empty() || share.is_empty() || host == "?" || host == "." {
-        return None;
-    }
-    Some(format!("\\\\{}\\{}", host, share).to_lowercase())
-}
+use crate::path::unc_share;
 
 /// Lexically normalizes `.`/`..` in an absolute Windows path with a root of `root_len` bytes.
 fn normalize(p: &str, root_len: usize) -> String {
@@ -251,23 +202,9 @@ pub fn resolve(src: &str, doc_path: &str) -> Result<Source, Placeholder> {
     Ok(Source::File(n))
 }
 
-/// DOS device names (`CON`, `NUL`, `COM1`, `lpt9.png`, …) in any path component.
+/// DOS device names in any path component: the one shared check (S3, prompt 022).
 fn is_device_name(c: &str) -> bool {
-    let stem = c
-        .split('.')
-        .next()
-        .unwrap_or("")
-        .trim_end()
-        .to_ascii_uppercase();
-    matches!(
-        stem.as_str(),
-        "CON" | "PRN" | "AUX" | "NUL" | "CONIN$" | "CONOUT$"
-    ) || (stem.len() == 4
-        && (stem.starts_with("COM") || stem.starts_with("LPT"))
-        && stem
-            .as_bytes()
-            .get(3)
-            .is_some_and(|d| (b'1'..=b'9').contains(d)))
+    crate::path::is_reserved(c)
 }
 
 fn check_unc(path: &str, doc_path: &str) -> Result<Source, Placeholder> {
@@ -302,27 +239,13 @@ pub fn resolve_policy(src: &str, doc_path: &str, fs: &mut dyn Fs) -> Result<Sour
     let Source::File(p) = &s else {
         return Ok(s);
     };
-    let same_share = p.starts_with("\\\\");
-    if !same_share {
-        let root = format!("{}\\", p.get(..2).unwrap_or(""));
-        match fs.drive_kind(&root) {
-            DriveKind::Remote => return Err(Placeholder::Network),
-            DriveKind::Unknown => return Err(Placeholder::Missing),
-            DriveKind::Local => {}
-        }
-    }
-    if let Some(t) = fs.reparse_target(p) {
-        let t: String = t.chars().map(|c| if c == '/' { '\\' } else { c }).collect();
-        let tl = t.to_ascii_lowercase();
-        if t.is_empty() || t.starts_with("\\\\") || tl.starts_with("\\??\\unc\\") {
-            return Err(Placeholder::Network);
-        }
-        if !same_share && t.len() >= 2 {
-            let root = format!("{}\\", t.get(..2).unwrap_or(""));
-            if fs.drive_kind(&root) != DriveKind::Local {
-                return Err(Placeholder::Network);
-            }
-        }
+    // S1 (prompt 022): the one shared S-RES-02 check (network forms, mapped drives, reparse
+    // points on every component), relative to the document.
+    match crate::path::local_policy(p, crate::path::Scope::Doc(doc_path), fs) {
+        Ok(()) => {}
+        Err(crate::path::Blocked::Missing) => return Err(Placeholder::Missing),
+        Err(crate::path::Blocked::Invalid(_)) => return Err(Placeholder::InvalidPath),
+        Err(crate::path::Blocked::Network) => return Err(Placeholder::Network),
     }
     match fs.size(p) {
         None => Err(Placeholder::Missing),

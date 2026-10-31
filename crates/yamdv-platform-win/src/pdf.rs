@@ -740,6 +740,16 @@ pub(crate) fn anchor_block(doc: &Document, a: &str) -> Option<usize> {
         .or_else(|| ix.html_anchors.get(a).map(|&b| b as usize))
 }
 
+/// B2: the block of the heading whose text or slug is `name` (case-insensitive).
+fn heading_block(doc: &Document, name: &str) -> Option<usize> {
+    let lower = name.to_lowercase();
+    doc.index
+        .headings
+        .iter()
+        .find(|h| h.slug == lower || h.text.to_lowercase() == lower)
+        .map(|h| h.block as usize)
+}
+
 fn now_date() -> Date {
     // SAFETY: plain call.
     let t = unsafe { windows::Win32::System::SystemInformation::GetSystemTime() };
@@ -877,13 +887,17 @@ pub fn export(
                         continue;
                     };
                     let d = l.dest.to_string();
-                    let anchor = if l.wiki {
-                        Some(d.as_str())
-                    } else {
-                        d.strip_prefix('#')
+                    // B2 (prompt 022): like the HTML export, a wikilink is a link only as
+                    // `[[#Heading]]` or when it names a heading of this document; any other
+                    // wikilink stays plain text without an annotation.
+                    let (wiki, t) = (l.wiki, d.trim());
+                    let anchor = match t.strip_prefix('#') {
+                        Some(a) => Some(anchor_block(doc, a)),
+                        None if wiki => Some(heading_block(doc, t)),
+                        None => None,
                     };
-                    if let Some(a) = anchor {
-                        match anchor_block(doc, a) {
+                    if let Some(found) = anchor {
+                        match found {
                             Some(b) => Target2::Doc(viewer.block_top(&content, b)),
                             None => continue,
                         }

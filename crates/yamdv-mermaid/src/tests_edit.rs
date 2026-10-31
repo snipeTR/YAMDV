@@ -70,7 +70,8 @@ fn node_label_replaced_where_defined() {
     assert_eq!(flow(&out).nodes[2].label, "All\ngood");
     // Quotes inside a label cannot end it.
     let out = e.set_node_label(0, "say \"hi\" [now]").unwrap();
-    assert_eq!(flow(&out).nodes[0].label, "say 'hi' [now]");
+    // B3 (prompt 022): quotes survive as `#quot;` (exact round trip).
+    assert_eq!(flow(&out).nodes[0].label, "say \"hi\" [now]");
 }
 
 #[test]
@@ -330,4 +331,55 @@ fn label_input_edits_on_char_boundaries() {
     e.left();
     e.left();
     assert_eq!(e.caret, 0);
+}
+
+/// B3 (prompt 022): labels survive encode → parse exactly, quotes included.
+#[test]
+fn b3_label_round_trip_exact() {
+    let e = fe("graph TD\n  A --> B\n");
+    for text in [
+        "say \"hi\" [now]",
+        "\"",
+        "C# & F#",
+        "#quot; literal",
+        "a #35; b",
+        "x <br> y",
+        "two\nlines",
+        "<b>bold?</b>",
+        "50% -> done.",
+        "ünïcode ğüşİı",
+    ] {
+        let out = e.set_node_label(0, text).unwrap();
+        assert_eq!(flow(&out).nodes[0].label, text, "{out}");
+        let out = e.set_edge_label(0, text).unwrap();
+        assert_eq!(flow(&out).edges[0].label.as_deref(), Some(text), "{out}");
+    }
+    assert_eq!(encode_label("a\"b"), "\"a#quot;b\"");
+}
+
+/// B3: editing one edge of a shared operator splits it out; the others keep their label.
+#[test]
+fn b3_shared_operator_edge_split() {
+    let src = "graph TD\n  A & B -->|old| C\n  C --> D\n";
+    let e = fe(src);
+    let f0 = flow(src);
+    let k = f0
+        .edges
+        .iter()
+        .position(|x| f0.nodes[x.from].id == "B" && f0.nodes[x.to].id == "C")
+        .unwrap();
+    let out = e.set_edge_label(k, "new").unwrap();
+    let f = flow(&out);
+    assert_eq!(f.edges.len(), f0.edges.len(), "{out}");
+    let lab = |a: &str, b: &str| {
+        f.edges
+            .iter()
+            .find(|x| f.nodes[x.from].id == a && f.nodes[x.to].id == b)
+            .and_then(|x| x.label.clone())
+    };
+    assert_eq!(lab("A", "C").as_deref(), Some("old"), "{out}");
+    assert_eq!(lab("B", "C").as_deref(), Some("new"), "{out}");
+    assert_eq!(lab("C", "D"), None, "{out}");
+    // Unchanged text: no rewrite.
+    assert_eq!(e.set_edge_label(k, "old").unwrap(), src);
 }

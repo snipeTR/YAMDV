@@ -1,7 +1,7 @@
 # YAMDV Kullanım Kılavuzu
 
 YAMDV (Yet Another Markdown Viewer), Windows 10/11 için yazılmış, tamamen çevrimdışı çalışan,
-küçük ve hızlı bir Markdown görüntüleyici ve düzenleyicidir. Bu kılavuz YAMDV **2.1.1** sürümünü
+küçük ve hızlı bir Markdown görüntüleyici ve düzenleyicidir. Bu kılavuz YAMDV **2.1.2** sürümünü
 anlatır. Menü, düğme ve ayar adları Türkçe arayüzde göründükleri gibi yazılmıştır.
 
 > Arayüz dili *Ayarlar ▸ Genel ▸ Dil* bölümünden seçilir (Sistem / English / Türkçe). "Sistem"
@@ -28,7 +28,7 @@ anlatır. Menü, düğme ve ayar adları Türkçe arayüzde göründükleri gibi
 
 **İndirme:** https://github.com/snipeTR/YAMDV/releases adresinden en son sürümün
 `YAMDV-<sürüm>-win-x64.zip` dosyasını indirin. Yanındaki `.sha256` dosyası zip'in SHA-256
-özetini içerir; PowerShell'de `Get-FileHash YAMDV-2.1.1-win-x64.zip` ile karşılaştırabilirsiniz.
+özetini içerir; PowerShell'de `Get-FileHash YAMDV-2.1.2-win-x64.zip` ile karşılaştırabilirsiniz.
 Zip'in içinde `yamdv.exe`, `README.md`, `README.tr.md`, `LICENSE`, `CHANGELOG.md`, `FUTURE.md`,
 `THIRD_PARTY_NOTICES.txt` ve bu kılavuz (`KULLANIM_KILAVUZU.md`) bulunur. Zip'teki kopyada ekran
 görüntüleri yer almaz; görselli sürüm

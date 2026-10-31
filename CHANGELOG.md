@@ -6,6 +6,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.2] - 2026-10-31
+
+Security and bug-fix release from the second code review (prompt 022, PR #2).
+
+### Security
+- S1: one shared network-location policy (`yamdv_core::path::local_policy`) runs before any
+  file-system access for drops, open, links, wikilinks, images, recent files and the app icon;
+  UNC, device, mapped-network and junction-to-UNC paths are blocked.
+- S2: wikilink names are validated (`..`, `:`, rooted, NUL), every candidate is policy-checked,
+  symlinked folders are not walked.
+- S3: one device-name check (adds `CONIN$` / `CONOUT$`).
+- S4: links with user info, IDN host or a non-default port always ask; a toast reports a link
+  that could not be opened.
+- S5: `href` / `src` use a scheme allowlist.
+- S6: PDF link URIs with user info or `\` in the authority are rejected.
+- S7: 15 more LOLBins are refused as custom editor; a custom editor command is confirmed once per
+  path, arguments and file fingerprint.
+- S8: the CSV formula guard also applies after leading whitespace, tab or CR.
+
+### Fixed
+- B1: find in the interactive HTML export matches per code point with Turkish İ/ı/I equivalence
+  (CSP hash updated).
+- B2: PDF wikilinks only link to headings.
+- B3: Mermaid labels round-trip exactly; renaming an edge that shares an operator splits it out;
+  adding and renaming a node is one undo step.
+
+### Changed
+- `cargo xtask future-md`; `spec-check` warns about deferred rows whose FUT issue is closed;
+  TRACEABILITY rows R-EXP-06, R-IMG-02, R-MMD-08, R-THEME-08, R-A11Y-03 marked implemented;
+  `tools/backlog/issues.jsonl` marked historical.
+- `indexing_slicing` is allowed per function with `SAFETY/bounds:` notes instead of file-wide;
+  fuzz seed corpora minimized with `cargo fuzz cmin`.
+
+### Known issues
+- `yamdv.exe` is 3,603,968 B, 3,968 B over the 3,600,000 B size budget; shipped by owner
+  decision, the budget is unchanged and the trim is tracked in #3.
+
 ## [2.1.1] - 2026-10-31
 
 Documentation release; the program code is unchanged apart from the version number.

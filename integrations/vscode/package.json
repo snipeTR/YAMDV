@@ -2,7 +2,7 @@
   "name": "yamdv-preview",
   "displayName": "YAMDV Preview",
   "description": "Open the current Markdown file in YAMDV (live preview that follows saves). No network, no telemetry.",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "publisher": "yamdv",
   "license": "AGPL-3.0-or-later",
   "repository": {

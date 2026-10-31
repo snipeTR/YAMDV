@@ -17,7 +17,7 @@ Get `YAMDV-<version>-win-x64.zip` from the release page. It is portable: unzip i
 
 ![YAMDV showing a document with the outline sidebar](tests/golden/v1a/doc-sidebar-light.png)
 
-**Version 2.1.1.** Features:
+**Version 2.1.2.** Features:
 
 - **Reading:** CommonMark + GFM (tables, task lists, footnotes, callouts, `<details>`), 30+ code
   lexers, native math (with macros) and Mermaid (flowchart, sequence, gantt, pie, state, class,

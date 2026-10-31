@@ -13,12 +13,19 @@ use pdf_writer::types::{SystemInfo, UnicodeCmap};
 /// Points per DIP (96 DPI → 72 DPI).
 pub const PT: f64 = 0.75;
 
-/// S-EXP-03: only `http`, `https` and `mailto` become URI actions.
+/// S-EXP-03: only `http`, `https` and `mailto` become URI actions. S6 (prompt 022): a web
+/// URI with userinfo (`https://bank.com@evil.example/`) is rejected (the text stays).
 #[must_use]
 pub fn safe_uri(d: &str) -> bool {
     let l = d.trim().to_ascii_lowercase();
-    (l.starts_with("http://") || l.starts_with("https://") || l.starts_with("mailto:"))
-        && !d.chars().any(char::is_control)
+    let web = l
+        .strip_prefix("http://")
+        .or_else(|| l.strip_prefix("https://"));
+    let authority_ok = web.is_none_or(|rest| {
+        let end = rest.find(['/', '?', '#']).unwrap_or(rest.len());
+        rest.get(..end).is_some_and(|a| !a.contains(['@', '\\']))
+    });
+    (web.is_some() || l.starts_with("mailto:")) && authority_ok && !d.chars().any(char::is_control)
 }
 
 /// OS/2 `fsType` allows embedding: installable, editable or preview & print, and not
@@ -219,6 +226,29 @@ pub fn link_rect(x0: f64, top: f64, scale: f64, r: (f32, f32, f32, f32)) -> [f32
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn s6_safe_uri_rejects_userinfo() {
+        for ok in [
+            "https://example.com/a@b",
+            "http://example.com/?q=a@b",
+            "https://example.com#x@y",
+            "mailto:a@b.c",
+        ] {
+            assert!(safe_uri(ok), "{ok}");
+        }
+        for bad in [
+            "https://user@example.com/",
+            "https://bank.com:pw@evil.example/",
+            "HTTP://a@b",
+            "https://x\\@y/",
+            "file:///C:/x",
+            "javascript:alert(1)",
+            "https://e.com/\u{7}",
+        ] {
+            assert!(!safe_uri(bad), "{bad}");
+        }
+    }
 
     #[test]
     fn uri_allow_list() {

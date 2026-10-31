@@ -342,7 +342,7 @@ pub fn convert(
         return None;
     }
     let mut budget = html::MAX_TAGS;
-    let root = tree(html::sanitize(html_src, &mut budget));
+    let root = tree(html::sanitize_paste(html_src, &mut budget));
     let mut c = Conv { save };
     Some(tidy(&c.kids(&root, Ctx::default())))
 }

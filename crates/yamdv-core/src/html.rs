@@ -308,7 +308,13 @@ fn is_anchor(v: &str) -> bool {
             .all(|c| c.is_ascii_alphanumeric() || matches!(c, b'_' | b'.' | b':' | b'-'))
 }
 
-/// URL scheme check for `href` / `src` (S-HTML-02). Further policy is S-LINK / S-RES.
+/// URL allowlist for `href` / `src` (S-HTML-02; S5, prompt 022). Further policy is S-LINK /
+/// S-RES.
+/// * `href`: `http`, `https`, `mailto`, `#fragment` and relative paths without a scheme.
+/// * `src`: relative or local (drive-letter) paths and `data:image/` in png, jpeg, gif, bmp,
+///   webp or x-icon.
+///
+/// Everything else (`file:`, `ms-msdt:`, `search-ms:`, `\\host`, `//host`, …) is removed.
 pub fn url_allowed(v: &str, img: bool) -> bool {
     let t: String = v
         .chars()
@@ -319,10 +325,39 @@ pub fn url_allowed(v: &str, img: bool) -> bool {
     if t.contains("javascript:") || t.contains("vbscript:") || t.contains("livescript:") {
         return false;
     }
-    if t.starts_with("data:") {
-        return img && t.starts_with("data:image/") && !t.starts_with("data:image/svg");
+    // UNC / protocol-relative: always a network location.
+    if t.starts_with("\\\\") || t.starts_with("//") || t.starts_with("\\/") || t.starts_with("/\\")
+    {
+        return false;
     }
-    true
+    match url_scheme(&t) {
+        None => true,
+        Some(s) if img => {
+            (s.len() == 1 && t.get(1..3).is_some_and(|r| r == ":\\" || r == ":/"))
+                || ["png", "jpeg", "gif", "bmp", "webp", "x-icon"]
+                    .iter()
+                    .any(|k| {
+                        t.strip_prefix("data:image/")
+                            .and_then(|r| r.strip_prefix(k))
+                            .is_some_and(|r| r.starts_with([';', ',']))
+                    })
+        }
+        Some(s) => matches!(s, "http" | "https" | "mailto"),
+    }
+}
+
+/// The scheme of `t` (lower-case), if the part before the first `:` is one (RFC 3986:
+/// ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )) and no `/ ? #` comes first.
+fn url_scheme(t: &str) -> Option<&str> {
+    let end = t.find([':', '/', '?', '#', '\\'])?;
+    if t.as_bytes().get(end) != Some(&b':') {
+        return None;
+    }
+    let s = t.get(..end)?;
+    let mut b = s.bytes();
+    (b.next().is_some_and(|c| c.is_ascii_alphabetic())
+        && b.all(|c| c.is_ascii_alphanumeric() || matches!(c, b'+' | b'-' | b'.')))
+    .then_some(s)
 }
 
 const NAMED_COLORS: &[&str] = &[
@@ -387,13 +422,14 @@ pub fn sanitize_style(v: &str) -> String {
     out.join("; ")
 }
 
-fn keep_attr(tag: &str, name: &str, val: &str) -> Option<String> {
+fn keep_attr(tag: &str, name: &str, val: &str, paste: bool) -> Option<String> {
     let heading = matches!(tag, "h1" | "h2" | "h3" | "h4" | "h5" | "h6");
     let ok = match name {
         "id" | "name" => is_anchor(val),
         "align" => matches!(tag, "p" | "div" | "img" | "td" | "th") || heading,
         "width" | "height" => tag == "img" && val.trim_end_matches("px").parse::<u32>().is_ok(),
-        "src" => tag == "img" && url_allowed(val, true),
+        // HTML paste (R-PASTE) keeps a web image as Markdown text; it is never fetched.
+        "src" => tag == "img" && (url_allowed(val, true) || (paste && web_url(val))),
         "alt" => tag == "img",
         "title" => matches!(tag, "img" | "a" | "abbr"),
         "href" => tag == "a" && url_allowed(val, false),
@@ -413,6 +449,21 @@ fn keep_attr(tag: &str, name: &str, val: &str) -> Option<String> {
 /// Tokenizes and sanitizes `html`. `budget` is the remaining per-document tag allowance
 /// (S-HTML-03); it is decremented for every tag seen.
 pub fn sanitize(html: &str, budget: &mut usize) -> Vec<Tok> {
+    sanitize_as(html, budget, false)
+}
+
+/// [`sanitize`] for HTML paste: additionally keeps `http(s)` image sources, which become
+/// `![alt](url)` text in the document (rendering still applies S-RES-02).
+pub fn sanitize_paste(html: &str, budget: &mut usize) -> Vec<Tok> {
+    sanitize_as(html, budget, true)
+}
+
+fn web_url(v: &str) -> bool {
+    let t = v.trim().to_ascii_lowercase();
+    url_allowed(v, false) && (t.starts_with("http://") || t.starts_with("https://"))
+}
+
+fn sanitize_as(html: &str, budget: &mut usize, paste: bool) -> Vec<Tok> {
     let raw = tokenize(html, budget);
     let mut out = Vec::new();
     let mut drop: Option<(String, usize)> = None;
@@ -458,7 +509,7 @@ pub fn sanitize(html: &str, budget: &mut usize) -> Vec<Tok> {
                 }
                 let attrs = attrs
                     .into_iter()
-                    .filter_map(|(k, v)| keep_attr(&name, &k, &v).map(|v| (k, v)))
+                    .filter_map(|(k, v)| keep_attr(&name, &k, &v, paste).map(|v| (k, v)))
                     .collect();
                 out.push(Tok::Open {
                     tag: name,

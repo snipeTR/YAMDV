@@ -463,9 +463,10 @@ pub fn ui_language_tag() -> &'static str {
 
 /// Hands a validated URL or an allowlisted local file to the default handler (S-EXEC-04,
 /// R-LINK-04): `ShellExecuteExW` with the "open" verb, never `SEE_MASK_NOZONECHECKS`.
-pub fn shell_open(target: &str) {
+/// `false` when `ShellExecuteExW` failed (S4, prompt 022: the caller shows a toast).
+pub fn shell_open(target: &str) -> bool {
     if dry_launch() {
-        return;
+        return true;
     }
     use windows::Win32::UI::Shell::{SEE_MASK_NOASYNC, SHELLEXECUTEINFOW, ShellExecuteExW};
     use windows::Win32::UI::WindowsAndMessaging::SW_SHOWNORMAL;
@@ -479,7 +480,7 @@ pub fn shell_open(target: &str) {
         ..Default::default()
     };
     // SAFETY: `info` is fully initialized and `file` outlives the call.
-    let _ = unsafe { ShellExecuteExW(&mut info) };
+    unsafe { ShellExecuteExW(&mut info) }.is_ok()
 }
 
 /// Opens Explorer with `path` selected (R-LINK-05); never runs the file.

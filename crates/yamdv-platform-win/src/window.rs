@@ -865,7 +865,11 @@ impl Win {
             (Pending::Large { path }, BTN_PLAIN) => self.open(sh, &path, Some(true), false),
             (Pending::Large { path }, BTN_RENDER) => self.open(sh, &path, Some(false), false),
             (Pending::Binary { path, plain }, BTN_OPEN) => self.open(sh, &path, Some(plain), true),
-            (Pending::Local { path }, BTN_OPEN) => sys::shell_open(&path),
+            (Pending::Local { path }, BTN_OPEN) => {
+                if !sys::shell_open(&path) {
+                    self.toast(Msg::LinkOpenFailed);
+                }
+            }
             (Pending::Reveal { path } | Pending::Local { path }, BTN_REVEAL) => {
                 sys::reveal_in_explorer(&path);
             }
@@ -921,7 +925,7 @@ impl Win {
                     "never" => ylink::ExternalMode::Never,
                     _ => ylink::ExternalMode::Ask,
                 };
-                if ylink::must_ask(mode, internet) {
+                if ylink::must_ask(mode, internet, &u) {
                     // FUT-41: an anchored popover instead of a modal dialog.
                     let mut notes = Vec::new();
                     if u.is_idn() {
@@ -937,8 +941,8 @@ impl Win {
                     if sys::copy_text(self.hwnd, &url) {
                         self.toast(Msg::Copied);
                     }
-                } else {
-                    sys::shell_open(&url);
+                } else if !sys::shell_open(&url) {
+                    self.toast(Msg::LinkOpenFailed);
                 }
             }
             ylink::Target::Local { path, fragment } => {

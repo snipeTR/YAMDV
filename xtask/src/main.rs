@@ -223,6 +223,7 @@ fn main() -> ExitCode {
         "notices" => notices::run(&root(), rest),
         "future" => future::run(&root()),
         "future-issues" => future_issues::run(&root()),
+        "future-md" => future::run_md(&root()),
         "icons" => {
             let dir = root().join("assets/icons");
             yamdv_svg::icons::read_dir(&dir)
@@ -249,7 +250,7 @@ fn main() -> ExitCode {
         }),
         _ => {
             println!(
-                "usage: cargo xtask <ci | check-imports [<exe>] | size [<exe>] | size-map <map> [--top N] | memprobe <exe> [...] | gen-icons | icons | spec-check | spec-patch | future | future-issues | golden --exe <exe> [--update] | gen-large [<out>] | notices [<out>]>"
+                "usage: cargo xtask <ci | check-imports [<exe>] | size [<exe>] | size-map <map> [--top N] | memprobe <exe> [...] | gen-icons | icons | spec-check | spec-patch | future | future-md | future-issues | golden --exe <exe> [--update] | gen-large [<out>] | notices [<out>]>"
             );
             Ok(())
         }

@@ -338,9 +338,10 @@ pub fn check(root: &Path) -> Result<(), String> {
             .collect::<Vec<_>>()
             .join(", ")
     );
+    crate::future::warn_closed(root);
     let fut_ok = crate::future::check(root)?;
     println!(
-        "FUTURE.md vs prompt 005 §5: {}",
+        "FUTURE.md (generated, or prompt 005 §5): {}",
         if fut_ok { "match" } else { "MISMATCH" }
     );
     if ok && proc_ok && fut_ok {

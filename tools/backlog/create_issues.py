@@ -47,6 +47,8 @@ def main(path):
             if not line.strip():
                 continue
             item = json.loads(line)
+            if "title" not in item:  # the historical header line (prompt 022 §3)
+                continue
             key = item["title"].split(":")[0].strip()
             if key in have:
                 skipped += 1

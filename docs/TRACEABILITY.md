@@ -39,14 +39,14 @@ Status values: `planned`, `partial (NNN)`, `implemented (NNN)`, `measured (NNN)`
 | R-EXP-03 | 011 | implemented (008 V1-D): PrintDlgExW in the dialog host, paginate.rs (r_exp_03_*) |
 | R-EXP-04 | 011 | implemented (008 V1-D): context menu, csv.rs (r_exp_04_*), driver export-csv |
 | R-EXP-05 | 011 | implemented (008 V1-D): --export-html / --export-pdf (r_exp_05_export_flags, CI v1d-checks) |
-| R-EXP-06 | 011 | deferred (FUT-23) |
+| R-EXP-06 | 011 | implemented (v2h): Copy as rich HTML (CF_HTML), diagram Copy / Save as PNG |
 | R-EXP-07 | V2-B | implemented (V2-B; BUG-11 #78: worker job, progress card, Cancel, taskbar) |
 | R-EXT-01 | 005 | implemented (005 V1-A) |
 | R-EXT-02 | 005 | implemented (FUT-10, #16; V2-H 018): detected editor shown in Settings ▸ External editor |
 | R-EXT-03 | 005 | partial (005): template tokenizer + CreateProcessW; no settings UI |
 | R-EXT-04 | 005 | planned |
 | R-IMG-01 | 003 | implemented (017): WIC decode + SVG (yamdv-svg, ADR-0021), animated GIF, ICO; WebP placeholder (ADR-0022) |
-| R-IMG-02 | 003 | partial (003): yamdv_core::image::resolve (tests); not wired to a decoder |
+| R-IMG-02 | 003 | implemented (v2): resolve + S-RES-02 policy wired to the decoder (images.rs); one shared yamdv_core::path::local_policy (022) |
 | R-IMG-03 | 003 | partial (003): display_size/obsidian_size/html_len (tests); not used by layout |
 | R-IMG-04 | 003 | partial (003): probe + LRU (tests); no worker/decode |
 | R-IMG-05 | 003 | implemented (V2-C 013): image viewer, ⛶ badge, zoom at cursor (FUT-36) |
@@ -93,7 +93,7 @@ Status values: `planned`, `partial (NNN)`, `implemented (NNN)`, `measured (NNN)`
 | R-MMD-05 | 010 | implemented (007): placeholder + Render anyway (mermaid.yds); part deferred: FUT-18 |
 | R-MMD-06 | 010 | implemented (017): full flowchart shape/edge set (flow tests) |
 | R-MMD-07 | 010 | implemented (007): seq.rs + tests; part deferred: FUT-18 |
-| R-MMD-08 | 010 | partial (017): gantt parser/layout + tests; no today marker |
+| R-MMD-08 | 010 | implemented (v2): gantt parser/layout + today marker (`todayMarker`), tests |
 | R-MMD-09 | 010 | implemented (017): pie title/showData/legend (pie tests, golden top-v2g-a-light) |
 | R-MMD-10 | 010 | implemented (017): diagram context menu Copy as PNG (CF_DIB + PNG) / Copy source (content-engines.yds) |
 | R-NAV-01 | 004/005 | implemented (005 + V2-D 014): Contents/History/Favorites/Files tabs, each hideable; no tab row when all three hidden |
@@ -187,7 +187,7 @@ Status values: `planned`, `partial (NNN)`, `implemented (NNN)`, `measured (NNN)`
 | R-THEME-05 | 004 | planned |
 | R-THEME-06 | 004 | implemented (012 V2-B): custom-color editor, color-editor.yds (FUT-04) |
 | R-THEME-07 | 004 | implemented (005 V1-A) |
-| R-THEME-08 | 004 | deferred (FUT-47) |
+| R-THEME-08 | 004 | implemented (v2i): High Contrast system colours (SPI_GETHIGHCONTRAST), live switch, WCAG test |
 | R-THEME-09 | 004 | planned |
 | R-THEME-10 | 004 | planned |
 | R-WIN-01 | 005 | implemented (005 V1-A) |
@@ -288,7 +288,7 @@ Status values: `planned`, `partial (NNN)`, `implemented (NNN)`, `measured (NNN)`
 | T10 | 013 | planned |
 | R-A11Y-01 | 012 | implemented (V2-D 014): Tab order over all interactive parts, 2 px ring after keyboard use, F6 regions (HARD-04); focus::order tests, driver keyboard-reach; UIA/HC with FUT-47 |
 | R-A11Y-02 | 012 | partial (002): reduced motion for scrolling |
-| R-A11Y-03 | 012 | deferred (FUT-47) |
+| R-A11Y-03 | 012 | implemented (v2i): UI Automation provider (window/uia.rs) |
 | R-A11Y-04 | 012 | implemented (002) |
 | R-F2-01 | 007 | implemented (006 V1-B): block-level model |
 | R-F2-02 | 007 | implemented (V2-F 016): ADR-0020 inline reveal + block constructs; driver f2-reveal, golden v2f-reveal-light |

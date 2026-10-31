@@ -11,8 +11,9 @@ d.addEventListener("click",function(ev){var a=ev.target.closest?ev.target.closes
 var q=d.getElementById("q"),qn=d.getElementById("qn"),hits=[],cur=-1,last="";
 function clear(){for(var i=0;i<hits.length;i++){var k=hits[i],p=k.parentNode;if(p){p.replaceChild(d.createTextNode(k.textContent),k);p.normalize();}}hits=[];cur=-1;}
 function skip(n){for(var e=n.parentNode;e&&e!==m;e=e.parentNode){var t=e.tagName;if(t==="SCRIPT"||t==="STYLE"||t==="svg"||t==="BUTTON")return true;}return false;}
-function find(s){clear();last=s;if(!s)return;var w=d.createTreeWalker(m,NodeFilter.SHOW_TEXT,null),ns=[],n,ls=s.toLowerCase();while((n=w.nextNode()))if(!skip(n))ns.push(n);
-for(var j=0;j<ns.length&&hits.length<2000;j++){n=ns[j];var at;while(n&&(at=n.data.toLowerCase().indexOf(ls))>=0&&hits.length<2000){var r=n.splitText(at),rest=r.splitText(s.length),k=d.createElement("mark");k.className="hit";r.parentNode.replaceChild(k,r);k.appendChild(r);hits.push(k);n=rest;}}}
+function fold(t){var o="",mp=[],i=0;while(i<t.length){var c=String.fromCodePoint(t.codePointAt(i)),f=c==="I"||c==="\u0130"||c==="\u0131"?"i":c.toLowerCase();for(var k=0;k<f.length;k++)mp.push(i);o+=f;i+=c.length;}mp.push(t.length);return{s:o,m:mp};}
+function find(s){clear();last=s;if(!s)return;var w=d.createTreeWalker(m,NodeFilter.SHOW_TEXT,null),ns=[],n,ls=fold(s).s;while((n=w.nextNode()))if(!skip(n))ns.push(n);
+for(var j=0;j<ns.length&&hits.length<2000;j++){n=ns[j];var F,at;while(n&&(at=(F=fold(n.data)).s.indexOf(ls))>=0&&hits.length<2000){var e=at+ls.length;while(e<F.s.length&&F.m[e]===F.m[e-1])e++;var a0=F.m[at],r=n.splitText(a0),rest=r.splitText(F.m[e]-a0),k=d.createElement("mark");k.className="hit";r.parentNode.replaceChild(k,r);k.appendChild(r);hits.push(k);n=rest;}}}
 function show(){if(qn)qn.textContent=hits.length?(cur+1)+"/"+hits.length:(last?"0":"");}
 function go(dir){if(!hits.length){show();return;}if(cur>=0)hits[cur].className="hit";cur=(cur+dir+hits.length)%hits.length;var k=hits[cur];k.className="hit cur";if(k.closest&&k.closest("[hidden]"))unfold();k.scrollIntoView({block:"center"});show();}
 if(q){q.addEventListener("keydown",function(ev){if(ev.key==="Enter"){ev.preventDefault();if(q.value!==last){find(q.value);cur=-1;}go(ev.shiftKey?-1:1);}else if(ev.key==="Escape"){q.value="";clear();last="";show();}});

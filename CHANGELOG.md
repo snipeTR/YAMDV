@@ -6,6 +6,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.4] - 2026-11-05
+
+### Added
+- Toolbar button **New / Yeni** (`new_file`, File ▸ New, `Ctrl+N`) with the owner's icon (page,
+  folded corner, serif N drawn as paths). It is first in the default (Essentials) set, before
+  Open, and can be chosen in Custom (PR #5).
+
+### Changed
+- A saved toolbar set equal to the previous Essentials default now shows as Custom; choose
+  Essentials again to get the New button.
+
+### Known issues
+- `yamdv.exe` is 3,608,576 B, still over the 3,600,000 B size budget; the budget is unchanged
+  and the trim is tracked in #3.
+
 ## [2.1.3] - 2026-11-05
 
 ### Added

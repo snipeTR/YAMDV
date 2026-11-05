@@ -19,7 +19,7 @@ içinde de var).
 
 ![Ana hat kenar çubuğuyla bir belgeyi gösteren YAMDV](tests/golden/v1a/doc-sidebar-light.png)
 
-**Sürüm 2.1.3.** Özellikler:
+**Sürüm 2.1.4.** Özellikler:
 
 - **Okuma:** CommonMark + GFM (tablolar, görev listeleri, dipnotlar, bilgi kutuları (callout),
   `<details>`), 30'dan fazla kod sözcük çözümleyicisi (lexer), yerleşik matematik (makrolarla) ve

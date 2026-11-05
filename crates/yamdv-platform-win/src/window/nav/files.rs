@@ -232,6 +232,30 @@ impl Win {
         self.invalidate();
     }
 
+    /// Right-click target of "New Markdown file…": the folder under `(x, y)` on the Files
+    /// tab (a folder row, a file row's folder, or the tree root), `None` elsewhere.
+    pub(in crate::window) fn files_folder_at(&self, sh: &Shared, x: f32, y: f32) -> Option<String> {
+        if self.tab() != 3 || !self.side_rect(sh).is_some_and(|r| r.contains(x, y)) {
+            return None;
+        }
+        let hit = self
+            .side_rows(sh)
+            .into_iter()
+            .find(|r| r.rect.contains(x, y))
+            .map(|r| r.kind);
+        let slot = self.nav.files.borrow();
+        let f = slot.as_ref()?;
+        let dir = match hit {
+            Some(RowKind::Tab(_)) => return None,
+            Some(RowKind::File { node, dir, .. }) => {
+                let p = f.tree.nodes.get(node).map(|n| n.path.clone())?;
+                if dir { Some(p) } else { folder_of(&p) }
+            }
+            _ => Some(f.tree.root().to_string()),
+        };
+        dir.filter(|d| !d.is_empty())
+    }
+
     /// Parent folder row of `node` (not the hidden root).
     pub(in crate::window) fn files_parent(&self, node: usize) -> Option<usize> {
         let slot = self.nav.files.borrow();

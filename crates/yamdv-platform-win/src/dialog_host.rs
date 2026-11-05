@@ -247,12 +247,31 @@ pub fn run_host(kind: &str, owner: isize, nonce: u64, arg: Option<&str>) -> i32 
             "-png" => Some(("PNG", "*.png", "png")),
             _ => None,
         };
-        let spec = crate::sys::SaveSpec {
-            export: export.map(|(a, b, c)| (a.to_string(), b.to_string(), c.to_string())),
-            default_name: arg
-                .and_then(crate::sys::unhex)
-                .and_then(|b| String::from_utf8(b).ok())
-                .filter(|n| !n.is_empty() && n.len() <= 255 && !n.contains(['\\', '/', ':'])),
+        let raw = arg
+            .and_then(crate::sys::unhex)
+            .and_then(|b| String::from_utf8(b).ok());
+        let spec = if what == "-new" {
+            // `<folder>\n<name>`: the folder must pass the S1 local policy (no network).
+            let (dir, name) = raw
+                .as_deref()
+                .and_then(|r| r.split_once('\n'))
+                .unwrap_or_default();
+            let mut fs = crate::images::WinFs;
+            let ok = yamdv_core::path::local_policy(dir, yamdv_core::path::Scope::Local, &mut fs)
+                .is_ok();
+            crate::sys::SaveSpec {
+                export: None,
+                default_name: yamdv_core::path::new_md_name(name),
+                folder: ok.then(|| dir.to_string()),
+                new_file: true,
+            }
+        } else {
+            crate::sys::SaveSpec {
+                export: export.map(|(a, b, c)| (a.to_string(), b.to_string(), c.to_string())),
+                default_name: raw
+                    .filter(|n| !n.is_empty() && n.len() <= 255 && !n.contains(['\\', '/', ':'])),
+                ..Default::default()
+            }
         };
         let (outcome, code) = match crate::sys::save_dialog_spec(owner, &f, &spec) {
             Some(Some(p)) => (Outcome::Paths(vec![p]), EXIT_OK),

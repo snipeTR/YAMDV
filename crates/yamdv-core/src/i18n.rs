@@ -111,6 +111,11 @@ messages! {
     MFavAdd => "Add to favorites", "Sık kullanılanlara ekle";
     MFavRemove => "Remove from favorites", "Sık kullanılanlardan çıkar";
     MFile => "File", "Dosya";
+    MNew => "New", "Yeni";
+    MNewMd => "New Markdown file…", "Yeni Markdown dosyası…";
+    Untitled => "Untitled.md", "Adsız.md";
+    NewExists => "A file with this name already exists: ", "Bu adda bir dosya zaten var: ";
+    NewBadName => "Not a valid file name: ", "Geçersiz dosya adı: ";
     MOpen => "Open…", "Aç…";
     MReload => "Reload", "Yeniden yükle";
     MReopenEncoding => "Reopen with encoding", "Kodlamayla yeniden aç";

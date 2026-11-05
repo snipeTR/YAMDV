@@ -429,6 +429,7 @@ impl Win {
     fn title_text(&self, sh: &Shared) -> String {
         match &self.view {
             View::Doc(d) if d.virt => "YAMDV".to_string(),
+            View::Doc(d) if d.path.is_empty() => tr(sh.lang, Msg::Untitled).to_string(),
             View::Doc(d) if sh.title_full => ypath::display_form(&d.path),
             View::Doc(d) => ypath::file_name(&d.path).to_string(),
             View::Error { path, .. } => ypath::file_name(path).to_string(),

@@ -43,6 +43,7 @@ macro_rules! tools {
 }
 
 tools! {
+    "new_file" 0 false "New" "Yeni";
     "open_file" 0 false "Open file" "Dosya aç";
     "reload" 0 false "Reload" "Yeniden yükle";
     "copy" 0 false "Copy" "Kopyala";
@@ -92,7 +93,7 @@ tools! {
 }
 
 /// `toolbar.items` default (prompt 020 §5.2 item 3).
-pub const DEFAULT_ITEMS: &str = "open_file,live_edit,split_edit,find,heading_jump,toggle_sidebar,export_pdf,print,mind_map,toggle_favorite,theme,settings";
+pub const DEFAULT_ITEMS: &str = "new_file,open_file,live_edit,split_edit,find,heading_jump,toggle_sidebar,export_pdf,print,mind_map,toggle_favorite,theme,settings";
 
 /// Index of `id` in [`TOOLS`].
 pub fn index(id: &str) -> Option<usize> {

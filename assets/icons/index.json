@@ -50,6 +50,7 @@
    "ids": [
     "toggle_favorite_off",
     "toggle_favorite_on",
+    "new_file",
     "open_file",
     "reload",
     "show_in_explorer",
@@ -152,6 +153,7 @@
   }
  ],
  "toolbar": [
+  "new_file",
   "open_file",
   "copy",
   "copy_markdown",

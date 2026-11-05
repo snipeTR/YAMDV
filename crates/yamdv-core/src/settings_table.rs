@@ -389,7 +389,7 @@ pub const DEFS: &[Def] = &[
     Def {
         key: "toolbar.items",
         kind: Kind::Str,
-        default: "open_file,live_edit,split_edit,find,heading_jump,toggle_sidebar,export_pdf,print,mind_map,toggle_favorite,theme,settings",
+        default: "new_file,open_file,live_edit,split_edit,find,heading_jump,toggle_sidebar,export_pdf,print,mind_map,toggle_favorite,theme,settings",
     },
     Def {
         key: "toolbar.order",

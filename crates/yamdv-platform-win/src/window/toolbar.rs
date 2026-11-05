@@ -83,6 +83,7 @@ pub(super) fn tool_cmd(id: &str) -> Option<u32> {
     let fmt = |i: u32| Some(app::FMT0 + i);
     let ins = |i: u32| Some(app::INS0 + i);
     match id {
+        "new_file" => Some(app::NEW_FILE),
         "open_file" => Some(app::OPEN),
         "reload" => Some(app::RELOAD),
         "copy" => Some(app::COPY),
@@ -247,8 +248,8 @@ impl Win {
         let doc = self.tb_doc();
         let real = doc == Some(false);
         let enabled = match t.id {
-            "open_file" | "theme" | "settings" | "shortcuts_help" | "about" | "toggle_sidebar"
-            | "font_bigger" | "font_smaller" | "fullscreen" => true,
+            "new_file" | "open_file" | "theme" | "settings" | "shortcuts_help" | "about"
+            | "toggle_sidebar" | "font_bigger" | "font_smaller" | "fullscreen" => true,
             "nav_back" => self.hist_pos > 0,
             "nav_forward" => self.hist_pos + 1 < self.history.len(),
             "live_edit" | "split_edit" | "external_editor" | "toggle_favorite" | "reload" => real,

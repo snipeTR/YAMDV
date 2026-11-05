@@ -6,6 +6,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.3] - 2026-11-05
+
+### Added
+- File ▸ New (`Ctrl+N`, keymap action `new_file`): an empty untitled buffer (`Untitled.md` /
+  `Adsız.md`) in Live Edit; nothing is written until the first save, which runs "Save as…".
+  Autosave is off for an untitled buffer; commands that need a file on disk are hidden or skipped.
+- Files tab right-click ▸ "New Markdown file…": a save dialog in that folder; the name is checked
+  (`yamdv_core::path::new_md_name`: no `..`, `:`, separators, wildcards or device names; `.md`
+  appended), network locations are refused (S1 `local_policy`), an existing file is never
+  overwritten; the new file opens in Live Edit (PR #4).
+
+### Security
+- pulldown-cmark `=0.13.6` (RUSTSEC-2026-0433, quadratic parsing of nested image wikilinks;
+  YAMDV enables wikilinks).
+
+### Known issues
+- `yamdv.exe` is still over the 3,600,000 B size budget (about +5 KB from this release); the
+  budget is unchanged and the trim is tracked in #3.
+
 ## [2.1.2] - 2026-10-31
 
 Security and bug-fix release from the second code review (prompt 022, PR #2).

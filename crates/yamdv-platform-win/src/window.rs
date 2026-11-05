@@ -217,6 +217,8 @@ thread_local! {
     static HOST: RefCell<Option<crate::dialog_host::HostWait>> = const { RefCell::new(None) };
     /// What the pending save/print dialog is for (`None` = "Save … as…").
     static EXPORT: RefCell<Option<ExportKind>> = const { RefCell::new(None) };
+    /// The pending save dialog names a new Markdown file (Files tab).
+    static NEW_MD_PENDING: std::cell::Cell<bool> = const { std::cell::Cell::new(false) };
     /// `--uninstall` decision: keep settings (`Some(true)`) or remove them.
     static UNINSTALL: std::cell::Cell<Option<bool>> = const { std::cell::Cell::new(None) };
 }
@@ -499,6 +501,8 @@ struct Win {
     ctx_table: Option<String>,
     /// Diagram (block, node) under the last context-menu click (FUT-18 Copy as PNG / source).
     ctx_diagram: Option<(usize, usize)>,
+    /// Right-click on the Files tab: the folder "New Markdown file…" creates in.
+    ctx_new_in: Option<String>,
     /// Content offset below the client top: the title bar height, 0 in fullscreen (B.4).
     top: f32,
     /// F11 fullscreen (R-WIN-06).
@@ -552,6 +556,8 @@ enum Action {
     Close,
     /// "Save … as…" dialog (dialog host, V1-B).
     SaveAsDialog,
+    /// Save dialog naming a new Markdown file in this folder (Files tab).
+    NewMdDialog(String),
     /// Export HTML / PDF / table CSV or Print (dialog host, V1-D).
     Export(ExportKind),
     /// Welcome page "Install YAMDV for this user" (R-SYS-05).
@@ -832,10 +838,12 @@ impl Win {
         self.sel = None;
         self.anim = None;
         self.wm.stop();
-        self.set_title(&format!(
-            "{} \u{2014} YAMDV",
-            ypath::file_name(&ypath::display_form(&full))
-        ));
+        let name = if full.is_empty() {
+            tr(sh.lang, Msg::Untitled).to_string()
+        } else {
+            ypath::file_name(&ypath::display_form(&full)).to_string()
+        };
+        self.set_title(&format!("{name} \u{2014} YAMDV"));
         self.invalidate();
     }
 
@@ -2089,6 +2097,7 @@ impl Win {
             }
             v if ctrl && v == u16::from(b'W') => return Some(Action::Close),
             v if ctrl && v == u16::from(b'O') => return Some(Action::OpenDialog),
+            v if ctrl && v == u16::from(b'N') => return Some(Action::Command(app::NEW_FILE)),
             v if ctrl && v == u16::from(b'A') => self.select_all(),
             v if ctrl && shift && v == u16::from(b'C') => self.copy_markdown(),
             v if ctrl && v == u16::from(b'C') => self.copy(),
@@ -3483,6 +3492,7 @@ fn handle(
             }
         }
         WM_CONTEXTMENU => {
+            w.ctx_new_in = None;
             if lp.0 == -1 {
                 w.ctx_table = None;
                 w.ctx_diagram = None;
@@ -3499,6 +3509,7 @@ fn handle(
                     w.defer(Deferred::SysMenu(sx, sy));
                     return (Some(LRESULT(0)), actions);
                 }
+                w.ctx_new_in = w.files_folder_at(sh, x, y);
                 let link = w.link_at(sh, x, y);
                 w.ctx_table = w.table_csv_at(sh, x, y);
                 w.ctx_diagram = w.diagram_at(sh, x, y);
@@ -3868,6 +3879,26 @@ fn run_actions_inner(hwnd: HWND, actions: Vec<Action>) {
                     None => show_toast(hwnd, Msg::DialogHostFailed),
                 }
             }
+            Action::NewMdDialog(dir) => {
+                if HOST.with(|h| h.borrow().is_some()) {
+                    continue;
+                }
+                let name = tr(sh.lang, Msg::Untitled);
+                match crate::dialog_host::launch_verb(
+                    hwnd,
+                    yamdv_core::ipc::Kind::Save,
+                    "save-new",
+                    Some(&format!("{dir}\n{name}")),
+                ) {
+                    Some(h) => {
+                        // SAFETY: valid hwnd; WM_ENABLE is not handled by us (no re-entry).
+                        let _ = unsafe { EnableWindow(hwnd, false) };
+                        HOST.with(|x| *x.borrow_mut() = Some(h));
+                        NEW_MD_PENDING.with(|n| n.set(true));
+                    }
+                    None => show_toast(hwnd, Msg::DialogHostFailed),
+                }
+            }
             Action::HostResult(yamdv_core::ipc::Kind::Save, o) => {
                 // SAFETY: valid hwnd.
                 unsafe {
@@ -3875,10 +3906,14 @@ fn run_actions_inner(hwnd: HWND, actions: Vec<Action>) {
                     let _ = SetForegroundWindow(hwnd);
                 }
                 let purpose = EXPORT.with(|e| e.borrow_mut().take());
+                let new_md = NEW_MD_PENDING.with(|n| n.replace(false));
                 match o {
                     yamdv_core::ipc::Outcome::Paths(p) => {
                         if let Some(path) = p.into_iter().next() {
                             match purpose {
+                                None if new_md => {
+                                    app::with_win(hwnd, |w, sh| w.create_new_md(sh, &path));
+                                }
                                 None => app::with_win(hwnd, |w, sh| w.edit_save_as(sh, &path)),
                                 Some(k) => app::with_win(hwnd, |w, sh| w.run_export(sh, &k, &path)),
                             }
@@ -4298,6 +4333,7 @@ fn create_window(sh: &Shared, path: Option<&str>) -> Option<HWND> {
         wysi: wysi::Wysi::default(),
         ctx_table: None,
         ctx_diagram: None,
+        ctx_new_in: None,
         top: top0,
         tb: toolbar::Bar {
             on: sh.tb_on,
@@ -4670,8 +4706,15 @@ fn start_export(hwnd: HWND, k: ExportKind) {
     }
     let mut stem = None;
     app::with_win(hwnd, |w, _| {
-        if let View::Doc(d) = &w.view {
-            stem = Some(crate::export::stem(&d.path));
+        // An untitled buffer has no folder to resolve against: CSV/PNG only.
+        if let View::Doc(d) = &w.view
+            && (!d.path.is_empty() || matches!(k, ExportKind::Csv(_) | ExportKind::Png(..)))
+        {
+            stem = Some(if d.path.is_empty() {
+                "Untitled".to_string()
+            } else {
+                crate::export::stem(&d.path)
+            });
         }
     });
     let Some(stem) = stem else { return };

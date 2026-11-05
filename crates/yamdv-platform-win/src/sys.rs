@@ -309,6 +309,10 @@ pub struct SaveSpec {
     pub export: Option<(String, String, String)>,
     /// Default file name (`<doc stem>.html` …).
     pub default_name: Option<String>,
+    /// Folder the dialog starts in (File → New Markdown file from the Files tab).
+    pub folder: Option<String>,
+    /// A new file: no overwrite prompt (the caller refuses existing names itself).
+    pub new_file: bool,
 }
 
 /// `IFileSaveDialog` (V1-B "Save … as…"). `Some(None)` = cancelled, `None` = failure.
@@ -356,8 +360,22 @@ pub fn save_dialog_spec(owner: HWND, f: &Filters<'_>, spec: &SaveSpec) -> Option
         if let Some(n) = &spec.default_name {
             let _ = dlg.SetFileName(&HSTRING::from(n.as_str()));
         }
+        if let Some(dir) = &spec.folder
+            && let Ok(item) = windows::Win32::UI::Shell::SHCreateItemFromParsingName::<
+                _,
+                _,
+                windows::Win32::UI::Shell::IShellItem,
+            >(&HSTRING::from(dir.as_str()), None)
+        {
+            let _ = dlg.SetFolder(&item);
+        }
         if let Ok(opts) = dlg.GetOptions() {
-            let _ = dlg.SetOptions(opts | FOS_OVERWRITEPROMPT | FOS_FORCEFILESYSTEM);
+            let over = if spec.new_file {
+                Default::default()
+            } else {
+                FOS_OVERWRITEPROMPT
+            };
+            let _ = dlg.SetOptions(opts | over | FOS_FORCEFILESYSTEM);
         }
         if let Err(e) = dlg.Show(Some(owner)) {
             return (e.code().0 as u32 == 0x8007_04C7).then_some(None);

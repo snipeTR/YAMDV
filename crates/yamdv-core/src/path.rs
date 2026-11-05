@@ -134,6 +134,26 @@ pub fn wiki_name_ok(name: &str) -> bool {
         && !name.contains('\0')
 }
 
+/// File → New Markdown file (prompt 023): the file name the user typed, as a single component
+/// with a Markdown extension (`.md` appended when it has none), or `None` when it is not a safe
+/// new file name: empty, `.`/`..`, a path (`\`, `/`), a drive or stream (`:`), wildcard or
+/// control characters, a trailing dot/space, or a device name (`CON`, `NUL.md`, `COM1` …).
+pub fn new_md_name(name: &str) -> Option<String> {
+    let n = name.trim();
+    let bad = |c: char| {
+        c.is_control() || matches!(c, '\\' | '/' | ':' | '*' | '?' | '"' | '<' | '>' | '|')
+    };
+    if n.is_empty() || n.starts_with('.') || n.ends_with(['.', ' ']) || n.chars().any(bad) {
+        return None;
+    }
+    let full = if crate::files::is_markdown(n) {
+        n.to_string()
+    } else {
+        format!("{n}.md")
+    };
+    (!is_reserved(&full) && wiki_name_ok(&full) && full.len() <= 255).then_some(full)
+}
+
 // ---- S-RES-02 network / reparse policy (S1, prompt 022) ----------------------------------------
 
 /// Result of `GetDriveTypeW` (only the classes the policy needs).
@@ -537,6 +557,23 @@ mod tests {
             local_policy(r"\\h@SSL\d\b.md", Scope::Doc(r"\\h@SSL\d\a.md"), &mut m),
             Err(Blocked::Network)
         );
+    }
+
+    #[test]
+    fn new_md_names() {
+        assert_eq!(new_md_name("Notes").as_deref(), Some("Notes.md"));
+        assert_eq!(new_md_name(" Adsız.md ").as_deref(), Some("Adsız.md"));
+        assert_eq!(
+            new_md_name("plan.markdown").as_deref(),
+            Some("plan.markdown")
+        );
+        assert_eq!(new_md_name("a.txt").as_deref(), Some("a.txt.md"));
+        for bad in [
+            "", "  ", ".", "..", "..\\x", "../x", "a\\b", "a/b", "C:x", "a:b.md", "\\x", "/x",
+            "x?", "x*", "a|b", "x.", "x. ", "CON", "nul.md", "COM1", "lpt9.md", "CONIN$", "a\0b",
+        ] {
+            assert_eq!(new_md_name(bad), None, "{bad:?}");
+        }
     }
 
     #[test]

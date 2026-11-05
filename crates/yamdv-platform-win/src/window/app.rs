@@ -740,6 +740,10 @@ mod cmd {
     pub const RELOAD: u32 = 71;
     pub const EXPLORER: u32 = 72;
     pub const COPY_PATH: u32 = 73;
+    /// File → New: an unsaved, untitled buffer (Ctrl+N).
+    pub const NEW_FILE: u32 = 74;
+    /// Files tab right-click: create a new Markdown file in that folder.
+    pub const NEW_MD: u32 = 75;
     pub const LANG0: u32 = 80; // + 0..3
     pub const LINKS0: u32 = 84; // + 0..3
     pub const RESTORE_POS: u32 = 88;
@@ -917,6 +921,10 @@ fn check(on: bool) -> u8 {
 pub(super) struct MenuCtx {
     pub link: Option<String>,
     pub has_doc: bool,
+    /// The document has a file on disk (not an untitled buffer).
+    pub named: bool,
+    /// Right-click on the Files tab: the folder a new Markdown file goes into.
+    pub new_in: Option<String>,
     pub path: Option<String>,
     /// Edit mode: 0 = read, 1 = Live Edit (F2), 2 = Split Edit (F3).
     pub edit: u8,
@@ -1104,7 +1112,11 @@ pub(super) fn build(lang: Lang, c: &MenuCtx) -> Model {
         &keys("fullscreen"),
         check(c.fullscreen),
     );
-    if c.has_doc {
+    if c.new_in.is_some() {
+        b.msg(m, NEW_MD, Msg::MNewMd, "", 0);
+        b.sep(m);
+    }
+    if c.named {
         b.msg(m, EDITOR, Msg::MExtEditor, &keys("external_editor"), 0);
         let fav = c
             .path
@@ -1153,8 +1165,9 @@ pub(super) fn build(lang: Lang, c: &MenuCtx) -> Model {
         );
     }
     let f = b.sub(m, Msg::MFile);
+    b.msg(f, NEW_FILE, Msg::MNew, &keys("new_file"), 0);
     b.msg(f, OPEN, Msg::MOpen, &keys("open_file"), 0);
-    if c.has_doc {
+    if c.named {
         b.msg(f, RELOAD, Msg::MReload, &keys("reload"), 0);
         b.msg(f, EXPLORER, Msg::MShowExplorer, "", 0);
         b.msg(f, COPY_PATH, Msg::MCopyPath, "", 0);
@@ -1166,7 +1179,7 @@ pub(super) fn build(lang: Lang, c: &MenuCtx) -> Model {
             }
         }
     }
-    if c.has_doc {
+    if c.named {
         let x = b.sub(m, Msg::MExport);
         b.msg(x, EXPORT_HTML, Msg::MExportHtml, "", 0);
         b.msg(x, EXPORT_PDF, Msg::MExportPdf, &keys("export_pdf"), 0);
@@ -1297,6 +1310,7 @@ pub(super) fn run_command(hwnd: HWND, id: u32, link: Option<String>) -> Vec<Acti
                 let label = yamdv_core::decode::REOPEN.get((i - ENC0) as usize);
                 if let (Some((_, l)), View::Doc(d)) = (label, &w.view)
                     && !d.virt
+                    && !d.path.is_empty()
                     && w.edit_mode_id() == 0
                 {
                     w.reopen_enc = Some(l);
@@ -1366,6 +1380,18 @@ pub(super) fn run_command(hwnd: HWND, id: u32, link: Option<String>) -> Vec<Acti
         EDITOR => with_win(hwnd, |w, _| w.open_editor()),
         FAVORITE => with_win(hwnd, |w, _| w.toggle_favorite()),
         OPEN => out.push(Action::OpenDialog),
+        NEW_FILE => with_win(hwnd, |w, sh| w.new_untitled(sh)),
+        NEW_MD => {
+            let mut dir = None;
+            with_win(hwnd, |w, sh| {
+                if w.edit_release(sh) {
+                    dir = w.ctx_new_in.take();
+                }
+            });
+            if let Some(d) = dir {
+                out.push(Action::NewMdDialog(d));
+            }
+        }
         EXPORT_HTML => out.push(Action::Export(super::ExportKind::Html)),
         EXPORT_PDF => out.push(Action::Export(super::ExportKind::Pdf)),
         PRINT => out.push(Action::Export(super::ExportKind::Print)),
@@ -1403,12 +1429,14 @@ pub(super) fn run_command(hwnd: HWND, id: u32, link: Option<String>) -> Vec<Acti
         EXPLORER => with_win(hwnd, |w, _| {
             if let View::Doc(d) = &w.view
                 && !d.virt
+                && !d.path.is_empty()
             {
                 sys::reveal_in_explorer(&d.path);
             }
         }),
         COPY_PATH => with_win(hwnd, |w, _| {
             if let View::Doc(d) = &w.view
+                && !d.path.is_empty()
                 && sys::copy_text(w.hwnd, &ypath::display_form(&d.path))
             {
                 w.toast(Msg::ToastPathCopied);
@@ -1539,6 +1567,9 @@ impl Win {
         let plain = matches!(d.content, Content::Plain { .. });
         let virt = d.virt;
         let sel = self.sel;
+        if path.is_empty() && !virt {
+            return; // an untitled buffer has nothing on disk to reload
+        }
         if virt {
             self.show_help(sh);
         } else {
@@ -1580,7 +1611,7 @@ impl Win {
     /// `F4` / `Ctrl+E` (R-EXT-01…03).
     pub(super) fn open_editor(&mut self) {
         let View::Doc(d) = &self.view else { return };
-        if d.virt {
+        if d.virt || d.path.is_empty() {
             return;
         }
         let path = d.path.clone();
@@ -1626,7 +1657,7 @@ impl Win {
     /// `Ctrl+D` (R-NAV-09).
     pub(super) fn toggle_favorite(&mut self) {
         let View::Doc(d) = &self.view else { return };
-        if d.virt {
+        if d.virt || d.path.is_empty() {
             return;
         }
         let p = d.path.clone();
@@ -1670,7 +1701,7 @@ impl Win {
     /// Saves this window's reading position (R-READ-02).
     pub(super) fn save_position(&self) {
         let View::Doc(d) = &self.view else { return };
-        if d.virt {
+        if d.virt || d.path.is_empty() {
             return;
         }
         let (b, off) = d.viewer.anchor();
@@ -1926,7 +1957,9 @@ impl Win {
             View::Doc(d) => MenuCtx {
                 link,
                 has_doc: !d.virt,
-                path: Some(d.path.clone()),
+                named: !d.virt && !d.path.is_empty(),
+                new_in: self.ctx_new_in.clone(),
+                path: Some(d.path.clone()).filter(|p| !p.is_empty()),
                 edit: self.edit_mode_id(),
                 table: self.ctx_table.is_some(),
                 diagram: self.ctx_diagram.is_some(),
@@ -1936,6 +1969,7 @@ impl Win {
             },
             _ => MenuCtx {
                 fullscreen: self.fs,
+                new_in: self.ctx_new_in.clone(),
                 ..MenuCtx::default()
             },
         }

@@ -56,6 +56,7 @@ macro_rules! actions {
 }
 
 actions! {
+    "new_file", "New file", "Yeni dosya", ["Ctrl+N"], Global;
     "open_file", "Open file", "Dosya aç", ["Ctrl+O"], Global;
     "close_window", "Close window", "Pencereyi kapat", ["Ctrl+W"], Global;
     "reload", "Reload", "Yeniden yükle", ["F5"], Global;
@@ -567,6 +568,7 @@ mod tests {
             Err(index("toggle_favorite").unwrap())
         );
         assert_eq!(k.shown("open_file"), "Ctrl+O");
+        assert_eq!(k.shown("new_file"), "Ctrl+N");
         assert_eq!(
             k.set(open, vec![ch("Ctrl+Shift+J")]).as_deref(),
             Ok("Ctrl+Shift+J")

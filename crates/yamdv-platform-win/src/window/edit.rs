@@ -458,6 +458,10 @@ impl Win {
                 return;
             };
             e.opts = Opts::load();
+            // An untitled buffer has nowhere to autosave to; closing or leaving asks instead.
+            if d.path.is_empty() {
+                e.opts.autosave = false;
+            }
             e.mode = Some(mode);
             e.pane = None;
             e.close_ok = false;
@@ -541,7 +545,11 @@ impl Win {
     pub(super) fn edit_title(&mut self) {
         let Some(sh) = shared() else { return };
         let View::Doc(d) = &self.view else { return };
-        let name = ypath::file_name(&ypath::display_form(&d.path)).to_string();
+        let name = if d.path.is_empty() {
+            tr(sh.lang, Msg::Untitled).to_string()
+        } else {
+            ypath::file_name(&ypath::display_form(&d.path)).to_string()
+        };
         let (dirty, mode) = d
             .edit
             .as_deref()
@@ -1649,6 +1657,15 @@ impl Win {
             }
             (d.path.clone(), e.ed.text(), d.facts.clone())
         };
+        if path.is_empty() {
+            // Untitled (File → New): the first save is "Save as…".
+            let m = self.edit_mode();
+            if let View::Doc(d) = &mut self.view {
+                d.facts.after_save_as = m;
+            }
+            self.actions.push(Action::SaveAsDialog);
+            return false;
+        }
         self.kill(TIMER_AUTOSAVE);
         let (enc, bom) = if utf8 {
             ("UTF-8", facts.bom && facts.encoding == "UTF-8")
@@ -1812,6 +1829,70 @@ impl Win {
         self.open(sh, &full, None, false);
         if let Some(m) = facts.after_save_as {
             self.edit_toggle(sh, m);
+        }
+    }
+
+    /// File → New (`Ctrl+N`): an empty, untitled buffer in Live Edit; nothing touches the
+    /// disk until the first save, which asks for a name ("Save as…").
+    pub(super) fn new_untitled(&mut self, sh: &Shared) {
+        if self.dialog.is_some() || !self.edit_release(sh) {
+            return;
+        }
+        self.save_position();
+        self.watcher = None;
+        self.show_text(sh, String::new(), String::new(), false, false);
+        self.edit_toggle(sh, Mode::Live);
+        self.edit_title();
+    }
+
+    /// Files tab → "New Markdown file…": creates the empty file `path` (never overwriting)
+    /// after the name and S1 local-policy checks, then opens it in Live Edit.
+    pub(super) fn create_new_md(&mut self, sh: &Shared, path: &str) {
+        if !self.edit_release(sh) {
+            return;
+        }
+        let name = ypath::file_name(path);
+        let picked = sys::full_path(path);
+        let (Some((dir, _)), Some(nm)) = (
+            picked.as_deref().and_then(|p| p.rsplit_once('\\')),
+            ypath::new_md_name(name),
+        ) else {
+            self.toast_with(Msg::NewBadName, name);
+            return;
+        };
+        let (dir, full) = (dir.to_string(), format!("{dir}\\{nm}"));
+        let mut fs = crate::images::WinFs;
+        let dir = dir.as_str();
+        match ypath::local_policy(dir, ypath::Scope::Local, &mut fs) {
+            Ok(()) => {}
+            Err(ypath::Blocked::Network) => {
+                self.toast_with(Msg::LinkNetwork, &full);
+                return;
+            }
+            Err(_) => {
+                self.toast_with(Msg::NewBadName, name);
+                return;
+            }
+        }
+        let created = std::fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(ypath::long_form(&full));
+        match created {
+            Ok(_) => {}
+            Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => {
+                self.toast_with(Msg::NewExists, name);
+                return;
+            }
+            Err(e) => {
+                crate::log::warn("new", &format!("{e}"));
+                self.toast(Msg::SaveFailed);
+                return;
+            }
+        }
+        self.open(sh, &full, None, false);
+        if matches!(&self.view, View::Doc(d) if d.path == full) {
+            self.edit_toggle(sh, Mode::Live);
         }
     }
 
